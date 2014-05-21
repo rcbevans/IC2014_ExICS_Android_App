@@ -1,0 +1,117 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="rce10.ic.ac.uk.exics.Login">
+
+
+    <ImageView
+        android:id="@+id/iv_icLogo"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_weight="1"
+        android:adjustViewBounds="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/imperial_logo_1080" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="0.5"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/login_item_margin">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Username:" />
+
+            <EditText
+                android:id="@+id/etLoginUsername"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username"
+                android:inputType="textNoSuggestions|textVisiblePassword" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="@dimen/login_item_margin"
+            android:paddingRight="@dimen/login_item_margin"
+            android:paddingTop="@dimen/login_item_margin">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Password:" />
+
+            <EditText
+                android:id="@+id/etLoginPassword"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:paddingBottom="@dimen/login_item_margin"
+            android:paddingLeft="@dimen/login_item_margin"
+            android:paddingRight="@dimen/login_item_margin">
+
+            <CheckBox
+                android:id="@+id/cbLoginShowPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="Show Password" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:padding="@dimen/login_item_margin">
+
+            <CheckBox
+                android:id="@+id/cbLoginRememberCredentials"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="Remember Credentials" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/bLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Login" />
+
+    </LinearLayout>
+
+</LinearLayout>

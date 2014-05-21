@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="rce10.ic.ac.uk.exics">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="rce10.ic.ac.uk.exics.Activities.Login"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="rce10.ic.ac.uk.exics.Activities.Login_Settings"
+            android:label="@string/title_activity_login__settings"
+            android:parentActivityName="rce10.ic.ac.uk.exics.Activities.Login">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="Login" />
+        </activity>
+    </application>
+
+</manifest>

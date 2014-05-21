@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="ExICS Configuration Settings">
+        <EditTextPreference
+            android:defaultValue="@string/default_host"
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="EXICS_HOSTNAME"
+            android:summary="ExICS Server Hostname"
+            android:title="Hostname" />
+
+        <EditTextPreference
+            android:defaultValue="@integer/default_port"
+            android:inputType="number"
+            android:key="EXICS_PORT"
+            android:summary="ExICS Server Port"
+            android:title="Port" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
