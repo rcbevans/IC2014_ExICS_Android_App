@@ -2,9 +2,15 @@ package rce10.ic.ac.uk.exics.Activities;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -16,9 +22,11 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import rce10.ic.ac.uk.exics.Model.BroadcastTags;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
+import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
 import rce10.ic.ac.uk.exics.R;
-
+import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
 
 public class Login extends Activity {
 
@@ -37,12 +45,69 @@ public class Login extends Activity {
 
     private static final String TAG_ABOUT_SHOWING = "ABOUT_SHOWING";
 
+    private static final String TAG_PROGRESS_SHOWING = "PROGRESS_SHOWING";
+    private static final String TAG_PROGRESS_TEXT = "PROGRESS_TEXT";
+
     private static final String TAG_SERVER_HOSTNAME = "EXICS_HOSTNAME";
     private static final String TAG_SERVER_PORT = "EXICS_PORT";
 
     private static final int LOGIN_SETTINGS = 0;
+
     private static ExICSData exicsData = ExICSData.getInstance();
+    private static wsCommunicationManager wsCM = null;
+    private static String loadingSpinnerMessage = "";
     private Dialog aboutDialog = null;
+    private ProgressDialog loadingSpinner = null;
+    private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onAuthSuccessful");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinnerMessage = "Fetching System Data";
+                loadingSpinner.setMessage(loadingSpinnerMessage);
+            }
+        }
+    };
+    private BroadcastReceiver onDataUpdated = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onDataUpdated");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+            }
+            CheckBox rememberCredentials = (CheckBox) findViewById(R.id.cbLoginRememberCredentials);
+
+            if (rememberCredentials.isChecked()) {
+                SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
+                sp.edit().putString(TAG_USERNAME, exicsData.getUsername());
+                sp.edit().putString(TAG_PASSWORD, exicsData.getPassword());
+            }
+
+            Toast.makeText(Login.this, "Loading complete, now to implement the rest to show it..", Toast.LENGTH_LONG).show();
+        }
+    };
+    private BroadcastReceiver onFailure = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onReceive");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+            }
+            String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
+            Toast.makeText(Login.this, "A Failure has occurred... Reason Given: " + reason, Toast.LENGTH_LONG).show();
+        }
+    };
+    private BroadcastReceiver onConnectionClosed = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onConnectionClosed");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+                String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
+                Toast.makeText(Login.this, "The connection to the server was closed... Reason Given: " + reason + "... Are the credentials you provided correct?", Toast.LENGTH_LONG).show();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +118,7 @@ public class Login extends Activity {
         Log.i(TAG, "Saved instance state?" + (savedInstanceState != null));
 
         setContentView(R.layout.activity_login);
+        wsCM = wsCommunicationManager.getInstance(this);
 
         SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
 
@@ -75,11 +141,17 @@ public class Login extends Activity {
         aboutDialog.setTitle("About ExICS");
         aboutDialog.setCanceledOnTouchOutside(true);
 
+        loadingSpinner = new ProgressDialog(Login.this);
+        loadingSpinner.setTitle("Connecting...");
+        loadingSpinner.setCanceledOnTouchOutside(false);
+
         if (savedInstanceState != null) {
             Log.i(TAG, "Restoring State");
             String storedUsername = savedInstanceState.getString(TAG_ENTERED_USERNAME);
             String storedPassword = savedInstanceState.getString(TAG_ENTERED_PASSWORD);
             Boolean aboutShowing = savedInstanceState.getBoolean(TAG_ABOUT_SHOWING);
+            Boolean progressShowing = savedInstanceState.getBoolean(TAG_PROGRESS_SHOWING);
+            String progressText = savedInstanceState.getString(TAG_PROGRESS_TEXT);
 
             passwordBox.setText(storedPassword);
             passwordBox.setSelection(passwordBox.getText().length());
@@ -88,6 +160,11 @@ public class Login extends Activity {
             usernameBox.requestFocus();
 
             if (aboutShowing) aboutDialog.show();
+            if (progressShowing && wsCM.isConnected()) {
+                loadingSpinnerMessage = progressText;
+                loadingSpinner.setMessage(loadingSpinnerMessage);
+                loadingSpinner.show();
+            }
 
         } else {
             if (rememberCredentials) {
@@ -129,9 +206,29 @@ public class Login extends Activity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Not yet implemented... Come back later", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "Not yet implemented... Come back later", Toast.LENGTH_SHORT).show();
+                loadingSpinnerMessage = "Connecting to server...";
+                loadingSpinner.setMessage(loadingSpinnerMessage);
+
+                EditText usernameBox = (EditText) findViewById(R.id.etLoginUsername);
+                EditText passwordBox = (EditText) findViewById(R.id.etLoginPassword);
+
+                SharedPreferences dsp = PreferenceManager.getDefaultSharedPreferences(Login.this);
+                exicsData.setServerHostname(dsp.getString(TAG_SERVER_HOSTNAME, "192.0.0.1"));
+                exicsData.setServerPort(Integer.parseInt(dsp.getString(TAG_SERVER_PORT, "")));
+                exicsData.setUsername(usernameBox.getText().toString());
+                exicsData.setPassword(passwordBox.getText().toString());
+
+                if (exicsData.getUsername().length() > 0 && exicsData.getPassword().length() > 0) {
+                    loadingSpinner.show();
+                    wsCM.connectToServer(exicsData.getServerHostname(), exicsData.getServerPort());
+                } else
+                    Toast.makeText(Login.this, "Please enter your IC Login Credentials", Toast.LENGTH_LONG).show();
+
             }
         });
+
+        registerBroadcastReceivers();
     }
 
     @Override
@@ -147,6 +244,9 @@ public class Login extends Activity {
         String enteredUsername = sp.getString(TAG_ENTERED_USERNAME, "");
         String enteredPassword = sp.getString(TAG_ENTERED_PASSWORD, "");
         Boolean aboutShowing = sp.getBoolean(TAG_ABOUT_SHOWING, false);
+
+        Boolean progressShowing = sp.getBoolean(TAG_PROGRESS_SHOWING, false);
+        String progressText = sp.getString(TAG_PROGRESS_TEXT, "");
 
         CheckBox rememberCredentialsCheckBox = (CheckBox) findViewById(R.id.cbLoginRememberCredentials);
         CheckBox showPasswordCheckBox = (CheckBox) findViewById(R.id.cbLoginShowPassword);
@@ -171,6 +271,11 @@ public class Login extends Activity {
         toggleShowPassword(showPassword);
 
         if (aboutShowing) aboutDialog.show();
+
+        if (progressShowing && wsCM.isConnected()) {
+            loadingSpinner.setMessage(progressText);
+            loadingSpinner.show();
+        }
     }
 
     @Override
@@ -183,6 +288,8 @@ public class Login extends Activity {
         sp.edit().putString(TAG_ENTERED_PASSWORD, passwordBox.getText().toString())
                 .putString(TAG_ENTERED_USERNAME, usernameBox.getText().toString())
                 .putBoolean(TAG_ABOUT_SHOWING, aboutDialog != null && aboutDialog.isShowing())
+                .putBoolean(TAG_PROGRESS_SHOWING, loadingSpinner != null && loadingSpinner.isShowing())
+                .putString(TAG_PROGRESS_TEXT, loadingSpinnerMessage)
                 .commit();
 
         super.onPause();
@@ -195,9 +302,10 @@ public class Login extends Activity {
         outState.putString(TAG_ENTERED_PASSWORD, passwordBox.getText().toString());
         outState.putString(TAG_ENTERED_USERNAME, usernameBox.getText().toString());
         outState.putBoolean(TAG_ABOUT_SHOWING, aboutDialog != null && aboutDialog.isShowing());
+        outState.putBoolean(TAG_PROGRESS_SHOWING, loadingSpinner != null && loadingSpinner.isShowing());
+        outState.putString(TAG_PROGRESS_TEXT, loadingSpinnerMessage);
 
         super.onSaveInstanceState(outState);
-
     }
 
     @Override
@@ -208,6 +316,12 @@ public class Login extends Activity {
         sp.edit().remove(TAG_ENTERED_USERNAME).remove(TAG_ENTERED_PASSWORD).remove(TAG_ABOUT_SHOWING).commit();
 
         if (aboutDialog != null && aboutDialog.isShowing()) aboutDialog.dismiss();
+        if (loadingSpinner != null && loadingSpinner.isShowing()) loadingSpinner.dismiss();
+
+        unregisterBroadcastReceivers();
+
+        if (wsCM.isConnected())
+            wsCM.disconnect();
 
         super.onDestroy();
     }
@@ -260,5 +374,20 @@ public class Login extends Activity {
                 Toast.makeText(Login.this, "Ruh-roh... What's happened here!?", Toast.LENGTH_SHORT).show();
                 break;
         }
+    }
+
+    private void registerBroadcastReceivers() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(onAuthSuccessful, new IntentFilter(BroadcastTags.TAG_AUTH_SUCCESSFUL));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onDataUpdated, new IntentFilter(BroadcastTags.TAG_DATA_UPDATED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onFailure, new IntentFilter(BroadcastTags.TAG_FAILURE_OCCURRED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionClosed, new IntentFilter(BroadcastTags.TAG_CONNECTION_CLOSED));
+
+    }
+
+    private void unregisterBroadcastReceivers() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onAuthSuccessful);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onDataUpdated);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onFailure);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onConnectionClosed);
     }
 }
