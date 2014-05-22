@@ -16,6 +16,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.R;
 
 
@@ -36,8 +37,11 @@ public class Login extends Activity {
 
     private static final String TAG_ABOUT_SHOWING = "ABOUT_SHOWING";
 
-    private static final int LOGIN_SETTINGS = 0;
+    private static final String TAG_SERVER_HOSTNAME = "EXICS_HOSTNAME";
+    private static final String TAG_SERVER_PORT = "EXICS_PORT";
 
+    private static final int LOGIN_SETTINGS = 0;
+    private static ExICSData exicsData = ExICSData.getInstance();
     private Dialog aboutDialog = null;
 
     @Override

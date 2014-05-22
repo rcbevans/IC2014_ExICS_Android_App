@@ -3,8 +3,6 @@ package rce10.ic.ac.uk.exics.tests;
 import android.test.InstrumentationTestCase;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
 import rce10.ic.ac.uk.exics.Model.Exam;
 import rce10.ic.ac.uk.exics.Utilities.ISO8601DateParser;
@@ -117,22 +115,18 @@ public class ExamClassTest extends InstrumentationTestCase {
         Exam testExam = setUpExam();
         String date = "2013-04-29T09:00:00.000Z";
         ISO8601DateParser dateParser = new ISO8601DateParser();
-        Date directParsedDate = dateParser.parse(date);
+        Calendar directParsedDate = dateParser.parse(date);
         assertEquals(directParsedDate, testExam.getScheduledStart());
     }
 
     public void testSetDate() throws Exception {
         Exam testExam = setUpExam();
-        Date examStart = testExam.getScheduledStart();
-        Calendar cal = new GregorianCalendar();
-        cal.setTime(examStart);
-        cal.set(Calendar.HOUR_OF_DAY, 12);
-        Date newStart = cal.getTime();
-        testExam.setScheduledStart(newStart);
+        Calendar examStart = testExam.getScheduledStart();
+        examStart.set(Calendar.HOUR_OF_DAY, 12);
+        testExam.setScheduledStart(examStart);
 
-        assertEquals(testExam.getScheduledStart(), newStart);
-        Calendar newCal = new GregorianCalendar();
-        newCal.setTime(testExam.getScheduledStart());
+        assertEquals(testExam.getScheduledStart(), examStart);
+        Calendar newCal = testExam.getScheduledStart();
         assertEquals(newCal.get(Calendar.HOUR_OF_DAY), 12);
     }
 }

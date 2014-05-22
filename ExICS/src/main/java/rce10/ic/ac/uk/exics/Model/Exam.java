@@ -3,7 +3,7 @@ package rce10.ic.ac.uk.exics.Model;
 import android.util.Log;
 
 import java.text.ParseException;
-import java.util.Date;
+import java.util.Calendar;
 
 import rce10.ic.ac.uk.exics.Utilities.ISO8601DateParser;
 
@@ -20,9 +20,9 @@ public class Exam {
     private int duration;
     private int extraTime;
     private int room;
-    private Date scheduledStart;
-    private Date actualStart;
-    private Date finish;
+    private Calendar scheduledStart;
+    private Calendar actualStart;
+    private Calendar finish;
     private Boolean running;
 
     public Exam(String examCode, String examTitle, int numQs, int duration, int xtime, int room, String scheduledStartJSON, String actualStartJSON, String finishJSON, String examRunning) {
@@ -99,27 +99,27 @@ public class Exam {
         this.room = room;
     }
 
-    public Date getScheduledStart() {
+    public Calendar getScheduledStart() {
         return this.scheduledStart;
     }
 
-    public void setScheduledStart(Date schedStart) {
+    public void setScheduledStart(Calendar schedStart) {
         this.scheduledStart = schedStart;
     }
 
-    public Date getActualStart() {
+    public Calendar getActualStart() {
         return this.actualStart;
     }
 
-    public void setActualStart(Date actStart) {
+    public void setActualStart(Calendar actStart) {
         this.actualStart = actStart;
     }
 
-    public Date getFinish() {
+    public Calendar getFinish() {
         return this.finish;
     }
 
-    public void setFinish(Date fin) {
+    public void setFinish(Calendar fin) {
         this.finish = fin;
     }
 
