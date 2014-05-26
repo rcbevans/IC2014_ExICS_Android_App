@@ -1,10 +1,11 @@
 package rce10.ic.ac.uk.exics.Activities;
 
 import android.app.Activity;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -16,10 +17,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
@@ -45,6 +48,9 @@ public class Login extends Activity {
 
     private static final String TAG_ABOUT_SHOWING = "ABOUT_SHOWING";
 
+    private static final String TAG_ROOM_SELECT_SHOWING = "ROOM_SELECT_SHOWING";
+    private static final String TAG_ROOM_SELECT_SELECTED = "ROOM_SELECT_SELECTED";
+
     private static final String TAG_PROGRESS_SHOWING = "PROGRESS_SHOWING";
     private static final String TAG_PROGRESS_TEXT = "PROGRESS_TEXT";
 
@@ -56,8 +62,11 @@ public class Login extends Activity {
     private static ExICSData exicsData = ExICSData.getInstance();
     private static wsCommunicationManager wsCM = null;
     private static String loadingSpinnerMessage = "";
-    private Dialog aboutDialog = null;
+    private AlertDialog aboutDialog = null;
+    private AlertDialog roomSelect = null;
+    private int roomSelectSpinnerItem = -1;
     private ProgressDialog loadingSpinner = null;
+
     private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -79,11 +88,11 @@ public class Login extends Activity {
 
             if (rememberCredentials.isChecked()) {
                 SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
-                sp.edit().putString(TAG_USERNAME, exicsData.getUsername());
-                sp.edit().putString(TAG_PASSWORD, exicsData.getPassword());
+                sp.edit().putString(TAG_USERNAME, exicsData.getUsername()).commit();
+                sp.edit().putString(TAG_PASSWORD, exicsData.getPassword()).commit();
             }
 
-            Toast.makeText(Login.this, "Loading complete, now to implement the rest to show it..", Toast.LENGTH_LONG).show();
+            roomSelect.show();
         }
     };
     private BroadcastReceiver onFailure = new BroadcastReceiver() {
@@ -136,10 +145,47 @@ public class Login extends Activity {
 
         sp.edit().remove(TAG_ENTERED_USERNAME).remove(TAG_ENTERED_PASSWORD).remove(TAG_ABOUT_SHOWING).commit();
 
-        aboutDialog = new Dialog(Login.this);
-        aboutDialog.setContentView(R.layout.about);
-        aboutDialog.setTitle("About ExICS");
+        AlertDialog.Builder aboutBuilder = new AlertDialog.Builder(Login.this);
+        aboutBuilder.setTitle("About ExICS");
+        aboutBuilder.setView(getLayoutInflater().inflate(R.layout.about, null));
+        aboutDialog = aboutBuilder.create();
         aboutDialog.setCanceledOnTouchOutside(true);
+
+        AlertDialog.Builder roomSelectBuilder = new AlertDialog.Builder(Login.this);
+        roomSelectBuilder.setTitle("Room Select");
+        View roomSelectDialogView = getLayoutInflater().inflate(R.layout.room_select_dialog, null);
+        Spinner roomList = (Spinner) roomSelectDialogView.findViewById(R.id.spRoomSpinner);
+//        roomList.set
+        roomList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(Login.this, "NOT IMPLEMENTED", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toast.makeText(Login.this, "NOT IMPLEMENTED", Toast.LENGTH_LONG).show();
+            }
+        });
+        roomSelectBuilder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(Login.this, "Loading complete, now to implement the rest to show it..", Toast.LENGTH_LONG).show();
+            }
+        });
+        roomSelectBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (dialog != null) {
+                    if (wsCM.isConnected())
+                        wsCM.disconnect();
+                    dialog.dismiss();
+                }
+            }
+        });
+        roomSelectBuilder.setView(roomSelectDialogView);
+        roomSelect = roomSelectBuilder.create();
+        roomSelect.setCanceledOnTouchOutside(false);
 
         loadingSpinner = new ProgressDialog(Login.this);
         loadingSpinner.setTitle("Connecting...");
@@ -150,6 +196,8 @@ public class Login extends Activity {
             String storedUsername = savedInstanceState.getString(TAG_ENTERED_USERNAME);
             String storedPassword = savedInstanceState.getString(TAG_ENTERED_PASSWORD);
             Boolean aboutShowing = savedInstanceState.getBoolean(TAG_ABOUT_SHOWING);
+            Boolean roomSelectedShowing = savedInstanceState.getBoolean(TAG_ROOM_SELECT_SHOWING);
+            int roomSelectSelected = savedInstanceState.getInt(TAG_ROOM_SELECT_SELECTED);
             Boolean progressShowing = savedInstanceState.getBoolean(TAG_PROGRESS_SHOWING);
             String progressText = savedInstanceState.getString(TAG_PROGRESS_TEXT);
 
@@ -160,6 +208,10 @@ public class Login extends Activity {
             usernameBox.requestFocus();
 
             if (aboutShowing) aboutDialog.show();
+            if (roomSelectedShowing) {
+                Spinner spinner = (Spinner) roomSelect.findViewById(R.id.spRoomSpinner);
+                roomSelect.show();
+            }
             if (progressShowing && wsCM.isConnected()) {
                 loadingSpinnerMessage = progressText;
                 loadingSpinner.setMessage(loadingSpinnerMessage);
@@ -302,6 +354,8 @@ public class Login extends Activity {
         outState.putString(TAG_ENTERED_PASSWORD, passwordBox.getText().toString());
         outState.putString(TAG_ENTERED_USERNAME, usernameBox.getText().toString());
         outState.putBoolean(TAG_ABOUT_SHOWING, aboutDialog != null && aboutDialog.isShowing());
+        outState.putBoolean(TAG_ROOM_SELECT_SHOWING, roomSelect != null && roomSelect.isShowing());
+        outState.putInt(TAG_ROOM_SELECT_SELECTED, roomSelectSpinnerItem);
         outState.putBoolean(TAG_PROGRESS_SHOWING, loadingSpinner != null && loadingSpinner.isShowing());
         outState.putString(TAG_PROGRESS_TEXT, loadingSpinnerMessage);
 

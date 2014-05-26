@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="rce10.ic.ac.uk.exics">
 
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -20,7 +20,7 @@
         </activity>
         <activity
             android:name="rce10.ic.ac.uk.exics.Activities.Login_Settings"
-            android:label="@string/title_activity_login__settings"
+            android:label="@string/title_activity_login_settings"
             android:parentActivityName="rce10.ic.ac.uk.exics.Activities.Login">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -24,7 +24,7 @@ public class ExICSDataTest extends InstrumentationTestCase {
         String date = "2013-04-29T09:00:00.000Z";
         String start = "2013-04-29T09:00:00.000Z";
         String finish = "null";
-        String running = "false";
+        Boolean running = false;
 
         return new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running);
     }

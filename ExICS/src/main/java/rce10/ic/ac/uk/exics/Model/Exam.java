@@ -25,7 +25,7 @@ public class Exam {
     private Calendar finish;
     private Boolean running;
 
-    public Exam(String examCode, String examTitle, int numQs, int duration, int xtime, int room, String scheduledStartJSON, String actualStartJSON, String finishJSON, String examRunning) {
+    public Exam(String examCode, String examTitle, int numQs, int duration, int xtime, int room, String scheduledStartJSON, String actualStartJSON, String finishJSON, Boolean examRunning) {
         this.examSubModule = examCode;
         this.title = examTitle;
         this.numQuestions = numQs;
@@ -35,7 +35,9 @@ public class Exam {
         ISO8601DateParser dateParser = new ISO8601DateParser();
         try {
             this.scheduledStart = dateParser.parse(scheduledStartJSON);
-            this.actualStart = dateParser.parse(actualStartJSON);
+            if (!actualStartJSON.contentEquals("null")) {
+                this.actualStart = dateParser.parse(actualStartJSON);
+            }
             if (!finishJSON.contentEquals("null"))
                 this.finish = dateParser.parse(finishJSON);
             else
@@ -48,7 +50,8 @@ public class Exam {
             }
         }
 
-        this.running = examRunning.contentEquals("true") ? true : false;
+        //this.running = examRunning.contentEquals("true") ? true : false;
+        this.running = examRunning;
     }
 
     public String getExamSubModule() {

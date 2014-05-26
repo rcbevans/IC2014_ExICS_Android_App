@@ -5,8 +5,11 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Iterator;
 
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
@@ -16,6 +19,8 @@ import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.ExICSException;
 import rce10.ic.ac.uk.exics.Model.ExICSMessageType;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
+import rce10.ic.ac.uk.exics.Model.Exam;
+import rce10.ic.ac.uk.exics.Model.User;
 
 /**
  * Created by Rich on 21/05/2014.
@@ -90,8 +95,6 @@ public class wsCommunicationManager {
             message.put(ExICSProtocol.TAG_HEADER, header);
             message.put(ExICSProtocol.TAG_PAYLOAD, payload);
 
-            Log.i(TAG, "Sending " + message.toString(4));
-
             mConnection.sendTextMessage(message.toString());
         } catch (JSONException e) {
             broadcastFailure(e.getLocalizedMessage());
@@ -112,6 +115,7 @@ public class wsCommunicationManager {
                     break;
 
                 case ExICSMessageType.SYSTEM_STATE:
+                    processSystemData(messagePayload);
                     broadcastDataUpdated();
                     break;
 
@@ -126,6 +130,62 @@ public class wsCommunicationManager {
             Log.e(TAG, "Failed to parse received message " + message, e);
         } catch (ExICSException e) {
             Log.e(TAG, "Excaption Handling Message Occurred", e);
+        }
+    }
+
+    private static void processSystemData(JSONObject payload) {
+        try {
+            JSONArray users = payload.getJSONArray(ExICSProtocol.TAG_USERS);
+            addUsers(users);
+            JSONObject exams = payload.getJSONObject(ExICSProtocol.TAG_EXAMS);
+            addExams(exams);
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to Process System Data", e);
+            broadcastFailure(e.getLocalizedMessage());
+        }
+    }
+
+    private static void addUsers(JSONArray users) {
+        try {
+            for (int i = 0; i < users.length(); i++) {
+                JSONObject user = users.getJSONObject(i);
+                User newUser = new User(user.getString(ExICSProtocol.TAG_NAME), user.getInt(ExICSProtocol.TAG_ROOM));
+                exICSData.addUser(newUser);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to Add Users", e);
+            broadcastFailure(e.getLocalizedMessage());
+        }
+    }
+
+    private static void addExams(JSONObject exams) {
+        try {
+            Iterator<?> rooms = exams.keys();
+            while (rooms.hasNext()) {
+                String roomNumber = (String) rooms.next();
+                JSONArray room = exams.getJSONArray(roomNumber);
+                for (int i = 0; i < room.length(); i++) {
+                    JSONObject exam = room.getJSONObject(i);
+                    String examCode = exam.getString(ExICSProtocol.TAG_EXAM_SUBEXAM);
+                    String examTitle = exam.getString(ExICSProtocol.TAG_TITLE);
+                    int numQs = exam.getInt(ExICSProtocol.TAG_NUM_QUESTIONS);
+                    int examDuration = exam.getInt(ExICSProtocol.TAG_DURATION);
+                    String scheduledStart = exam.getString(ExICSProtocol.TAG_DATE);
+                    Boolean running = exam.getBoolean(ExICSProtocol.TAG_RUNNING);
+                    String start = exam.getString(ExICSProtocol.TAG_START);
+                    String finish = exam.getString(ExICSProtocol.TAG_FINISH);
+                    int extraTime = exam.getInt(ExICSProtocol.TAG_EXTRA_TIME);
+//                    int examRoom = Integer.parseInt(roomNumber);
+                    String examRoomString = exam.getString(ExICSProtocol.TAG_ROOM);
+                    int examRoom = Integer.parseInt(examRoomString);
+
+                    Exam newExam = new Exam(examCode, examTitle, numQs, examDuration, extraTime, examRoom, scheduledStart, start, finish, running);
+                    exICSData.addExam(newExam);
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to add Exams", e);
+            broadcastFailure(e.getLocalizedMessage());
         }
     }
 
