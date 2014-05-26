@@ -13,6 +13,7 @@ public class ExICSData {
 
     private static String username;
     private static String password;
+    private static int room;
 
     private static String serverHostname;
     private static int serverPort;
@@ -51,6 +52,14 @@ public class ExICSData {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getRoom() {
+        return this.room;
+    }
+
+    public void setRoom(int room) {
+        this.room = room;
     }
 
     public String getServerHostname() {

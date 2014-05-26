@@ -219,4 +219,23 @@ public class wsCommunicationManager {
         mConnection.disconnect();
     }
 
+    public static void updateRoom(int roomNum) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.CHANGE_ROOM);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_ROOM, roomNum);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+        }
+    }
+
 }
