@@ -1,24 +1,34 @@
 package rce10.ic.ac.uk.exics.Activities;
 
+import android.animation.Animator;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import rce10.ic.ac.uk.exics.Fragments.ExICS_Log_History;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
+import rce10.ic.ac.uk.exics.Model.BroadcastTags;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
+import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.OnSwipeTouchListener;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
@@ -29,10 +39,16 @@ public class ExICS_Main extends Activity
     private static final String TAG_CHAT_FRAGMENT = "CHAT_FRAGMENT";
 
     private static final String TAG = ExICS_Main.class.getName();
+
     private static final String TAG_EXICS_MAIN_SHARED_PREFS = "EXICS_MAIN_SHARED_PREFS";
     private static final String TAG_CONFIRM_QUIT_SHOWING = "CONFIRM_QUIT_SHOWING";
+
+    private static final String TAG_PROGRESS_SHOWING = "PROGRESS_SHOWING";
+    private static final String TAG_PROGRESS_TEXT = "PROGRESS_TEXT";
+
     private static ExICSData exicsData = ExICSData.getInstance();
     private static wsCommunicationManager wsCM = null;
+    private static String loadingSpinnerMessage = "";
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -43,6 +59,58 @@ public class ExICS_Main extends Activity
     private CharSequence mTitle;
     private AlertDialog confirmQuitDialog;
     private Boolean holdWSOpen = false;
+    private ProgressDialog loadingSpinner = null;
+    private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onAuthSuccessful");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinnerMessage = "Fetching System Data";
+                loadingSpinner.setMessage(loadingSpinnerMessage);
+            }
+        }
+    };
+    private BroadcastReceiver onFailure = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onReceive");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+                String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
+                Toast.makeText(ExICS_Main.this, "A Failure has occurred... Reason Given: " + reason, Toast.LENGTH_LONG).show();
+                quitToLogin();
+            }
+            String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
+            Toast.makeText(ExICS_Main.this, "A Failure has occurred... Reason Given: " + reason, Toast.LENGTH_LONG).show();
+        }
+    };
+    private BroadcastReceiver onConnectionClosed = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onConnectionClosed");
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+                String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
+                Toast.makeText(ExICS_Main.this, "The connection to the server was closed... Reason Given: " + reason + "... Are the credentials you provided correct?", Toast.LENGTH_LONG).show();
+                quitToLogin();
+            }
+            Toast.makeText(ExICS_Main.this, "The connection has dropped... Attempting to reconnect...", Toast.LENGTH_LONG).show();
+            attemptWSReconnect();
+        }
+    };
+    private BroadcastReceiver onDataUpdated = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received Broadcast onDataUpdated");
+
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+                Toast.makeText(ExICS_Main.this, "Successfully restored connection to the server", Toast.LENGTH_LONG).show();
+            }
+
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +122,10 @@ public class ExICS_Main extends Activity
 
         final SharedPreferences sp = getSharedPreferences(TAG_EXICS_MAIN_SHARED_PREFS, MODE_PRIVATE);
 
+        loadingSpinner = new ProgressDialog(ExICS_Main.this);
+        loadingSpinner.setTitle("Connecting...");
+        loadingSpinner.setCanceledOnTouchOutside(false);
+
         confirmQuitDialog = createQuitConfirmationDialog(savedInstanceState);
 
         attachFragmentSwipeListeners();
@@ -62,9 +134,18 @@ public class ExICS_Main extends Activity
             //TO_DO
             Boolean confirmQuitShowing = savedInstanceState.getBoolean(TAG_CONFIRM_QUIT_SHOWING, false);
 
+            Boolean progressShowing = savedInstanceState.getBoolean(TAG_PROGRESS_SHOWING, false);
+            String progressText = savedInstanceState.getString(TAG_PROGRESS_TEXT);
+
             if (confirmQuitShowing) {
                 confirmQuitDialog.show();
                 sp.edit().remove(TAG_CONFIRM_QUIT_SHOWING).commit();
+            }
+
+            if (progressShowing && wsCM.isConnected()) {
+                loadingSpinnerMessage = progressText;
+                loadingSpinner.setMessage(loadingSpinnerMessage);
+                loadingSpinner.show();
             }
         }
 
@@ -78,14 +159,34 @@ public class ExICS_Main extends Activity
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
         setUpChatWindow();
+
+        registerBroadcastReceivers();
     }
 
     @Override
     protected void onResume() {
         Log.i(TAG, "onResume");
+        SharedPreferences sp = getSharedPreferences(TAG_EXICS_MAIN_SHARED_PREFS, MODE_PRIVATE);
+
+        Boolean progressShowing = sp.getBoolean(TAG_PROGRESS_SHOWING, false);
+        String progressText = sp.getString(TAG_PROGRESS_TEXT, "");
+
+        if (progressShowing && wsCM.isConnected()) {
+            loadingSpinnerMessage = progressText;
+            loadingSpinner.setMessage(loadingSpinnerMessage);
+            loadingSpinner.show();
+        }
+
+        if (!wsCM.isConnected()) {
+            if (loadingSpinner != null && loadingSpinner.isShowing()) {
+                loadingSpinner.dismiss();
+            }
+            attemptWSReconnect();
+        }
 
         if (confirmQuitDialog == null)
             confirmQuitDialog = createQuitConfirmationDialog(null);
+
         super.onResume();
     }
 
@@ -105,6 +206,7 @@ public class ExICS_Main extends Activity
     @Override
     protected void onDestroy() {
         Log.i(TAG, "onDestroy");
+        unregisterBroadcastReceivers();
         if (!holdWSOpen) {
             if (wsCM.isConnected())
                 wsCM.disconnect();
@@ -174,17 +276,80 @@ public class ExICS_Main extends Activity
     }
 
     private void showChatLog() {
-        View contentWindow = findViewById(R.id.flMainContent);
+        final View contentWindow = findViewById(R.id.flMainContent);
         View chatWindow = findViewById(R.id.flChatWindow);
-        contentWindow.setVisibility(View.GONE);
+
+        chatWindow.setAlpha(0f);
         chatWindow.setVisibility(View.VISIBLE);
+
+        chatWindow.animate()
+                .alpha(1f)
+                .setDuration(500)
+                .setListener(null);
+
+        contentWindow.animate()
+                .alpha(0f)
+                .setDuration(500)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        contentWindow.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
+
     }
 
     private void hideChatLog() {
-        View contentWindow = findViewById(R.id.flMainContent);
-        View chatWindow = findViewById(R.id.flChatWindow);
+        final View contentWindow = findViewById(R.id.flMainContent);
+        final View chatWindow = findViewById(R.id.flChatWindow);
+
+        contentWindow.setAlpha(0f);
         contentWindow.setVisibility(View.VISIBLE);
-        chatWindow.setVisibility(View.GONE);
+
+        contentWindow.animate()
+                .alpha(1f)
+                .setDuration(500)
+                .setListener(null);
+
+        chatWindow.animate()
+                .alpha(0f)
+                .setDuration(500)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        chatWindow.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
     }
 
     private AlertDialog createQuitConfirmationDialog(Bundle savedInstanceState) {
@@ -258,9 +423,37 @@ public class ExICS_Main extends Activity
     }
 
     private void setUpChatWindow() {
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.flChatWindow, ExICS_Log_History.newInstance(), TAG_CHAT_FRAGMENT)
-                .commit();
+        Fragment chatFragment = getFragmentManager().findFragmentByTag(TAG_CHAT_FRAGMENT);
+        if (chatFragment == null || !(chatFragment instanceof ExICS_Log_History)) {
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flChatWindow, ExICS_Log_History.newInstance(), TAG_CHAT_FRAGMENT)
+                    .commit();
+        }
+    }
+
+    private void attemptWSReconnect() {
+        wsCM.connectToServer(exicsData.getServerHostname(), exicsData.getServerPort());
+    }
+
+    private void registerBroadcastReceivers() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(onAuthSuccessful, new IntentFilter(BroadcastTags.TAG_AUTH_SUCCESSFUL));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onDataUpdated, new IntentFilter(BroadcastTags.TAG_DATA_UPDATED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onFailure, new IntentFilter(BroadcastTags.TAG_FAILURE_OCCURRED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionClosed, new IntentFilter(BroadcastTags.TAG_CONNECTION_CLOSED));
+
+    }
+
+    private void unregisterBroadcastReceivers() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onAuthSuccessful);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onDataUpdated);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onFailure);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onConnectionClosed);
+    }
+
+    private void quitToLogin() {
+        Intent backToLogin = new Intent(ExICS_Main.this, Login.class);
+        startActivity(backToLogin);
+        finish();
     }
 }

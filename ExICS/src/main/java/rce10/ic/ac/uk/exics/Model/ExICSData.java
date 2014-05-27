@@ -21,6 +21,8 @@ public class ExICSData {
     private static HashMap<Integer, ArrayList<Exam>> currentSession = new HashMap<Integer, ArrayList<Exam>>();
     private static HashMap<String, User> users = new HashMap<String, User>();
 
+    private static String chatLog = new String();
+
     private static ExICSData instance = null;
 
     private ExICSData() {
@@ -168,6 +170,19 @@ public class ExICSData {
     public synchronized void resetData() {
         clearCurrentSession();
         clearCurrentUsers();
+        clearChatLog();
+    }
+
+    public synchronized String getChatLog() {
+        return this.chatLog;
+    }
+
+    public synchronized void appendToChatLog(String line) {
+        this.chatLog += android.text.format.DateFormat.format("hh:mm", new java.util.Date()) + " " + line + "\n";
+    }
+
+    public synchronized void clearChatLog() {
+        this.chatLog = new String();
     }
 
     //User Methods

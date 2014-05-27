@@ -6,10 +6,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
+import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.R;
 
 public class ExICS_Log_History extends Fragment {
+
+    ExICSData exICSData = ExICSData.getInstance();
+
+    ScrollView logScrollView = null;
+    TextView logText = null;
 
     public ExICS_Log_History() {
         // Required empty public constructor
@@ -33,13 +41,17 @@ public class ExICS_Log_History extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_ex_ics_log_history, container, false);
+        View inflatedView = inflater.inflate(R.layout.fragment_ex_ics_log_history, container, false);
+        logScrollView = (ScrollView) inflatedView.findViewById(R.id.svChatLog);
+        logText = (TextView) inflatedView.findViewById(R.id.tvExICSLog);
+        updateLogText();
+        return inflatedView;
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        updateLogText();
 //        try {
 //            mListener = (OnFragmentInteractionListener) activity;
 //        } catch (ClassCastException e) {
@@ -51,6 +63,20 @@ public class ExICS_Log_History extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    public void updateLogText() {
+        if (logText != null) {
+            logText.setText(exICSData.getChatLog());
+            if (logScrollView != null) {
+                logScrollView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        logScrollView.scrollTo(0, logText.getBottom());
+                    }
+                });
+            }
+        }
     }
 
     public interface OnFragmentInteractionListener {

@@ -50,13 +50,14 @@ public class wsCommunicationManager {
         }
     }
 
-    public static void connectToServer(String hostname, int portNumber) {
+    public static void connectToServer(final String hostname, final int portNumber) {
         try {
             Log.i(TAG, "Connecting to " + "ws://" + hostname + ":" + Integer.toString(portNumber));
             mConnection.connect("ws://" + hostname + ":" + Integer.toString(portNumber), new WebSocketHandler() {
                 @Override
                 public void onOpen() {
                     super.onOpen();
+                    exICSData.appendToChatLog("Connected to server " + "ws://" + hostname + ":" + Integer.toString(portNumber));
                     Log.i(TAG, "Websocket Connection Opened");
                     sendProtocolHandshake(exICSData.getUsername(), exICSData.getPassword());
                 }
@@ -71,6 +72,7 @@ public class wsCommunicationManager {
                 @Override
                 public void onClose(int code, String reason) {
                     super.onClose(code, reason);
+                    exICSData.appendToChatLog("Lost connection to server " + "ws://" + hostname + ":" + Integer.toString(portNumber));
                     Log.i(TAG, "Websocket Connection Closed");
                     broadcastConnectionClosed(reason);
                 }
@@ -111,10 +113,12 @@ public class wsCommunicationManager {
 
             switch (messageType) {
                 case ExICSMessageType.PROTOCOL_HANDSHAKE:
+                    exICSData.appendToChatLog("Successfully Authenticated");
                     broadcastAuthSuccessful();
                     break;
 
                 case ExICSMessageType.SYSTEM_STATE:
+                    exICSData.appendToChatLog("System State Updated");
                     processSystemData(messagePayload);
                     broadcastDataUpdated();
                     break;
