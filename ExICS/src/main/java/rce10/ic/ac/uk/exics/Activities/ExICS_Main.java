@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,6 +28,7 @@ import rce10.ic.ac.uk.exics.Fragments.ExICS_Log_History;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
 import rce10.ic.ac.uk.exics.Fragments.Room_List_Fragment;
+import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
@@ -35,9 +37,10 @@ import rce10.ic.ac.uk.exics.Utilities.OnSwipeTouchListener;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
 
 public class ExICS_Main extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, ExICS_Main_Fragment_Interface {
 
     private static final String TAG_CHAT_FRAGMENT = "CHAT_FRAGMENT";
+    private static final String TAG_ROOM_LIST_FRAGMENT = "ROOM_LIST_FRAGMENT";
 
     private static final String TAG = ExICS_Main.class.getName();
 
@@ -60,6 +63,8 @@ public class ExICS_Main extends Activity
     private CharSequence mTitle;
     private AlertDialog confirmQuitDialog;
     private Boolean holdWSOpen = false;
+    private Boolean quitting = false;
+
     private ProgressDialog loadingSpinner = null;
     private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
         @Override
@@ -95,8 +100,10 @@ public class ExICS_Main extends Activity
                 Toast.makeText(ExICS_Main.this, "The connection to the server was closed... Reason Given: " + reason + "... Are the credentials you provided correct?", Toast.LENGTH_LONG).show();
                 quitToLogin();
             }
-            Toast.makeText(ExICS_Main.this, "The connection has dropped... Attempting to reconnect...", Toast.LENGTH_LONG).show();
-            attemptWSReconnect();
+            if (!quitting) {
+                Toast.makeText(ExICS_Main.this, "The connection has dropped... Attempting to reconnect...", Toast.LENGTH_LONG).show();
+                attemptWSReconnect();
+            }
         }
     };
     private BroadcastReceiver onDataUpdated = new BroadcastReceiver() {
@@ -192,8 +199,13 @@ public class ExICS_Main extends Activity
     @Override
     public void onBackPressed() {
         Log.i(TAG, "onBackPressed()");
-        if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
-            confirmQuitDialog.show();
+        FragmentManager fm = getFragmentManager();
+        if (fm.getBackStackEntryCount() < 0) {
+            fm.popBackStack();
+        } else {
+            if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
+                confirmQuitDialog.show();
+        }
     }
 
     @Override
@@ -227,13 +239,16 @@ public class ExICS_Main extends Activity
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         FragmentManager fragmentManager = getFragmentManager();
+        clearFragmentBackStack(fragmentManager);
         if (position == 0) {
             fragmentManager.beginTransaction()
-                    .replace(R.id.flMainContent, Room_List_Fragment.newInstance())
+                    .replace(R.id.flMainContent, Room_List_Fragment.newInstance(), TAG_ROOM_LIST_FRAGMENT)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
         } else {
             fragmentManager.beginTransaction()
                     .replace(R.id.flMainContent, PlaceholderFragment.newInstance(position + 1))
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
         }
     }
@@ -375,6 +390,7 @@ public class ExICS_Main extends Activity
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
+                quitting = true;
                 if (wsCM.isConnected())
                     wsCM.disconnect();
                 sp.edit().remove(TAG_CONFIRM_QUIT_SHOWING).commit();
@@ -407,24 +423,6 @@ public class ExICS_Main extends Activity
                 }
             });
 
-        } else {
-            View mainContent = findViewById(R.id.flMainContent);
-            mainContent.setOnTouchListener(new OnSwipeTouchListener(ExICS_Main.this) {
-                @Override
-                public void onSwipeLeft() {
-                    showChatLog();
-                    super.onSwipeLeft();
-                }
-            });
-
-            View chatWindow = findViewById(R.id.flChatWindow);
-            chatWindow.setOnTouchListener(new OnSwipeTouchListener(ExICS_Main.this) {
-                @Override
-                public void onSwipeRight() {
-                    hideChatLog();
-                    super.onSwipeRight();
-                }
-            });
         }
     }
 
@@ -461,5 +459,19 @@ public class ExICS_Main extends Activity
         Intent backToLogin = new Intent(ExICS_Main.this, Login.class);
         startActivity(backToLogin);
         finish();
+    }
+
+    private void clearFragmentBackStack(FragmentManager fm) {
+        fm.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    @Override
+    public void updateContentFragment(Fragment frag) {
+        FragmentManager fm = getFragmentManager();
+        fm.beginTransaction()
+                .replace(R.id.flMainContent, frag)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .addToBackStack(null)
+                .commit();
     }
 }

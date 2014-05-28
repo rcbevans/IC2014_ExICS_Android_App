@@ -248,7 +248,6 @@ public class Login extends Activity {
             passwordBox.setSelection(passwordBox.getText().length());
             usernameBox.setText(storedUsername);
             usernameBox.setSelection(usernameBox.getText().length());
-            usernameBox.requestFocus();
 
             if (aboutShowing) aboutDialog.show();
 
@@ -337,8 +336,6 @@ public class Login extends Activity {
                 passwordBox.setText(storedPassword);
                 passwordBox.setSelection(passwordBox.getText().length());
                 loginButton.requestFocus();
-            } else {
-                usernameBox.requestFocus();
             }
         }
 
@@ -420,13 +417,11 @@ public class Login extends Activity {
             EditText usernameBox = (EditText) findViewById(R.id.etLoginUsername);
             usernameBox.setText(enteredUsername);
             usernameBox.setSelection(usernameBox.getText().length());
-            usernameBox.requestFocus();
         }
         if (!enteredPassword.contentEquals("")) {
             EditText passwordBox = (EditText) findViewById(R.id.etLoginPassword);
             passwordBox.setText(enteredPassword);
             passwordBox.setSelection(passwordBox.getText().length());
-            passwordBox.requestFocus();
         }
 
         rememberCredentialsCheckBox.setChecked(rememberCredentials);
