@@ -64,6 +64,10 @@ public class ExICSData {
         this.room = room;
     }
 
+    public boolean inRoom(int room) {
+        return this.room == room;
+    }
+
     public String getServerHostname() {
         return this.serverHostname;
     }
@@ -107,6 +111,21 @@ public class ExICSData {
             return 0;
         } else {
             return examList.size();
+        }
+    }
+
+    public synchronized int getNumStartedExamsInRoom(int room) {
+        ArrayList<Exam> examList = currentSession.get(room);
+        int numExamsStarted = 0;
+        if (examList == null) {
+            return 0;
+        } else {
+            for (Exam exam : examList) {
+                if (exam.isRunning()) {
+                    numExamsStarted++;
+                }
+            }
+            return numExamsStarted;
         }
     }
 
@@ -183,6 +202,16 @@ public class ExICSData {
 
     public synchronized void clearChatLog() {
         this.chatLog = new String();
+    }
+
+    public int getNumUsersInRoom(int room) {
+        int numUsers = 0;
+        for (String user : getAllUsers()) {
+            User userData = users.get(user);
+            if (userData.getRoom() == room)
+                numUsers++;
+        }
+        return numUsers;
     }
 
     //User Methods

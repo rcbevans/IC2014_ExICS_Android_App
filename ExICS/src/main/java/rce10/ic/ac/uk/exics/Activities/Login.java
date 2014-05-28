@@ -374,8 +374,8 @@ public class Login extends Activity {
                 EditText passwordBox = (EditText) findViewById(R.id.etLoginPassword);
 
                 SharedPreferences dsp = PreferenceManager.getDefaultSharedPreferences(Login.this);
-                exicsData.setServerHostname(dsp.getString(TAG_SERVER_HOSTNAME, "192.0.0.1"));
-                exicsData.setServerPort(Integer.parseInt(dsp.getString(TAG_SERVER_PORT, "")));
+                exicsData.setServerHostname(dsp.getString(TAG_SERVER_HOSTNAME, getResources().getString(R.string.default_host)));
+                exicsData.setServerPort(Integer.parseInt(dsp.getString(TAG_SERVER_PORT, String.valueOf(getResources().getInteger(R.integer.default_port)))));
                 exicsData.setUsername(usernameBox.getText().toString());
                 exicsData.setPassword(passwordBox.getText().toString());
 

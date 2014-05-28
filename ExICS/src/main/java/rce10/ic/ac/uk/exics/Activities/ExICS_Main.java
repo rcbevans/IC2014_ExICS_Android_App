@@ -26,6 +26,7 @@ import android.widget.Toast;
 import rce10.ic.ac.uk.exics.Fragments.ExICS_Log_History;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
+import rce10.ic.ac.uk.exics.Fragments.Room_List_Fragment;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
@@ -107,8 +108,6 @@ public class ExICS_Main extends Activity
                 loadingSpinner.dismiss();
                 Toast.makeText(ExICS_Main.this, "Successfully restored connection to the server", Toast.LENGTH_LONG).show();
             }
-
-
         }
     };
 
@@ -227,24 +226,31 @@ public class ExICS_Main extends Activity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.flMainContent, PlaceholderFragment.newInstance(position + 1))
-                .commit();
+        if (position == 0) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flMainContent, Room_List_Fragment.newInstance())
+                    .commit();
+        } else {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flMainContent, PlaceholderFragment.newInstance(position + 1))
+                    .commit();
+        }
     }
 
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
-                mTitle = getString(R.string.title_section1);
+                mTitle = "Overview";
                 break;
             case 2:
-                mTitle = getString(R.string.title_section2);
+                mTitle = "SeatingPlan";
                 break;
             case 3:
-                mTitle = getString(R.string.title_section3);
+                mTitle = "Invigilation Plan";
                 break;
+            default:
+                mTitle = "King Potato of the clans";
         }
     }
 
