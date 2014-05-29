@@ -1,5 +1,9 @@
 package rce10.ic.ac.uk.exics.Model;
 
+import android.content.Context;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -38,6 +42,11 @@ public class ExICSData {
     }
 
     ;
+
+    private static void broadcastLogUpdated(Context context) {
+        Intent broadcast = new Intent(BroadcastTags.TAG_LOG_UPDATED);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
+    }
 
     //Member methods
     public String getUsername() {
@@ -143,6 +152,21 @@ public class ExICSData {
         }
     }
 
+    public synchronized int getNumPausedExamsInRoom(int room) {
+        ArrayList<Exam> examList = currentSession.get(room);
+        int numExamsPaused = 0;
+        if (examList == null) {
+            return 0;
+        } else {
+            for (Exam exam : examList) {
+                if (exam.isPaused()) {
+                    numExamsPaused++;
+                }
+            }
+            return numExamsPaused;
+        }
+    }
+
     public synchronized boolean removeExam(int room, String courseCode) {
         ArrayList<Exam> examList = currentSession.get(room);
         if (examList == null) {
@@ -160,6 +184,26 @@ public class ExICSData {
                 }
             }
             return false;
+        }
+    }
+
+    public synchronized int getLowestRoomStatus(int room) {
+        ArrayList<Exam> examList = currentSession.get(room);
+        int status = 2;
+        if (examList == null) {
+            return 0;
+        } else {
+            for (Exam exam : examList) {
+                if (!exam.isRunning()) {
+                    status = 0;
+                    break;
+                }
+                if (exam.isPaused()) {
+                    if (1 < status)
+                        status = 1;
+                }
+            }
+            return status;
         }
     }
 
@@ -200,7 +244,12 @@ public class ExICSData {
         }
     }
 
-    public synchronized void resetData() {
+    public synchronized void clearSystemState() {
+        clearCurrentSession();
+        clearCurrentUsers();
+    }
+
+    public synchronized void resetExICSData() {
         clearCurrentSession();
         clearCurrentUsers();
         clearChatLog();
@@ -210,15 +259,16 @@ public class ExICSData {
         return this.chatLog;
     }
 
-    public synchronized void appendToChatLog(String line) {
+    public synchronized void appendToChatLog(String line, Context context) {
         this.chatLog += android.text.format.DateFormat.format("hh:mm", new java.util.Date()) + " " + line + "\n";
+        broadcastLogUpdated(context);
     }
 
     public synchronized void clearChatLog() {
         this.chatLog = new String();
     }
 
-    public int getNumUsersInRoom(int room) {
+    public synchronized int getNumUsersInRoom(int room) {
         int numUsers = 0;
         for (String user : getAllUsers()) {
             User userData = users.get(user);

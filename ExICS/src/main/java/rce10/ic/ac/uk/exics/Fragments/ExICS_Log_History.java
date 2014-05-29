@@ -9,12 +9,13 @@ import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.FragmentOnSwipeTouchListener;
 
-public class ExICS_Log_History extends Fragment {
+public class ExICS_Log_History extends Fragment implements ExICS_Main_Child_Fragment_Interface {
 
     ExICSData exICSData = ExICSData.getInstance();
 
@@ -83,5 +84,10 @@ public class ExICS_Log_History extends Fragment {
                 });
             }
         }
+    }
+
+    @Override
+    public void refreshView() {
+        updateLogText();
     }
 }

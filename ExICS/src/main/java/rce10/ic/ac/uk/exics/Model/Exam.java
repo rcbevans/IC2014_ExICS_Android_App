@@ -164,4 +164,18 @@ public class Exam {
         }
         return timePausedMins;
     }
+
+    public Calendar getExpectedFinish() {
+        Calendar finish;
+        if (isRunning()) {
+            finish = (Calendar) this.actualStart.clone();
+        } else {
+            finish = (Calendar) this.scheduledStart.clone();
+        }
+        finish.add(Calendar.MINUTE, getDuration());
+        finish.add(Calendar.MINUTE, getExtraTime());
+        finish.add(Calendar.MINUTE, getTimePaused());
+
+        return finish;
+    }
 }

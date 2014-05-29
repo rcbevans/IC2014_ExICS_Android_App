@@ -11,4 +11,6 @@ public interface ExICS_Main_Fragment_Interface {
     public void onFragmentSwipedLeft();
 
     public void onFragmentSwipedRight();
+
+    public void fragmentViewUnavailable();
 }

@@ -7,8 +7,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.Calendar;
-
 import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.Exam;
 import rce10.ic.ac.uk.exics.R;
@@ -45,15 +43,12 @@ public class ExamListFragmentListAdapter extends ArrayAdapter<Exam> {
 //            numQns.setText(String.valueOf(rowExam.getNumQuestions()));
             examDuration.setText(String.valueOf(rowExam.getDuration()));
 
+            schedFinishTime.setText(android.text.format.DateFormat.format("HH:mm", rowExam.getExpectedFinish().getTime()));
+
+
             if (rowExam.isRunning()) {
                 startText.setText("Started:");
                 schedStartTime.setText(android.text.format.DateFormat.format("HH:mm", rowExam.getActualStart().getTime()));
-
-                Calendar startTime = rowExam.getActualStart();
-                startTime.add(Calendar.MINUTE, rowExam.getDuration());
-                startTime.add(Calendar.MINUTE, rowExam.getExtraTime());
-                startTime.add(Calendar.MINUTE, rowExam.getTimePaused());
-                schedFinishTime.setText(android.text.format.DateFormat.format("HH:mm", startTime.getTime()));
 
                 if (rowExam.isPaused()) {
                     examStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.yellow_light));
@@ -63,15 +58,18 @@ public class ExamListFragmentListAdapter extends ArrayAdapter<Exam> {
             } else {
                 schedStartTime.setText(android.text.format.DateFormat.format("HH:mm", rowExam.getScheduledStart().getTime()));
 
-                Calendar startTime = rowExam.getScheduledStart();
-                startTime.add(Calendar.MINUTE, rowExam.getDuration());
-                startTime.add(Calendar.MINUTE, rowExam.getExtraTime());
-                schedFinishTime.setText(android.text.format.DateFormat.format("HH:mm", startTime.getTime()));
-
                 examStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.red_light));
             }
         }
 
         return convertView;
+    }
+
+    public Exam getExamAtPosition(int pos) {
+        if (pos > exams.length) {
+            return null;
+        } else {
+            return exams[pos];
+        }
     }
 }

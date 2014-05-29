@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="rce10.ic.ac.uk.exics.Fragments.Room_List_Fragment">
+    tools:context="rce10.ic.ac.uk.exics.Fragments.RoomListFragment">
 
     <TextView
         android:id="@+id/tvOverviewListTitle"

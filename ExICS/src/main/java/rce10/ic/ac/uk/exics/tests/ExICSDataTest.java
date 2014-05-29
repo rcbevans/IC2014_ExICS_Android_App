@@ -240,7 +240,7 @@ public class ExICSDataTest extends InstrumentationTestCase {
         testObject.addExam(mockExam);
         assertEquals(1, testObject.getNumUsers());
         assertEquals(1, testObject.getNumRooms());
-        testObject.resetData();
+        testObject.resetExICSData();
         assertEquals(0, testObject.getNumRooms());
         assertEquals(0, testObject.getNumUsers());
     }

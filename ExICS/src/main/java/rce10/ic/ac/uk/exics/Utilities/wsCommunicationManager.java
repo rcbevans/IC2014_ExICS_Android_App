@@ -59,7 +59,7 @@ public class wsCommunicationManager {
                 @Override
                 public void onOpen() {
                     super.onOpen();
-                    exICSData.appendToChatLog("Connected to server " + "ws://" + hostname + ":" + Integer.toString(portNumber));
+                    exICSData.appendToChatLog("Connected to server " + "ws://" + hostname + ":" + Integer.toString(portNumber), context);
                     Log.i(TAG, "Websocket Connection Opened");
                     sendProtocolHandshake(exICSData.getUsername(), exICSData.getPassword());
                 }
@@ -74,7 +74,7 @@ public class wsCommunicationManager {
                 @Override
                 public void onClose(int code, String reason) {
                     super.onClose(code, reason);
-                    exICSData.appendToChatLog("Lost connection to server " + "ws://" + hostname + ":" + Integer.toString(portNumber));
+                    exICSData.appendToChatLog("Lost connection to server " + "ws://" + hostname + ":" + Integer.toString(portNumber), context);
                     Log.i(TAG, "Websocket Connection Closed");
                     broadcastConnectionClosed(reason);
                 }
@@ -113,16 +113,47 @@ public class wsCommunicationManager {
 
             int messageType = messageHeader.getInt(ExICSProtocol.TAG_MESSAGE_TYPE);
 
+            String username;
+            int roomNum;
+            String examCode;
+
             switch (messageType) {
                 case ExICSMessageType.PROTOCOL_HANDSHAKE:
-                    exICSData.appendToChatLog("Successfully Authenticated");
+                    exICSData.appendToChatLog("Successfully Authenticated", context);
                     broadcastAuthSuccessful();
                     break;
 
                 case ExICSMessageType.SYSTEM_STATE:
-                    exICSData.appendToChatLog("System State Updated");
+                    exICSData.appendToChatLog("System State Updated", context);
+                    exICSData.clearSystemState();
                     processSystemData(messagePayload);
                     broadcastDataUpdated();
+                    break;
+
+                case ExICSMessageType.EXAM_START:
+                    username = messagePayload.getString(ExICSProtocol.TAG_USERNAME);
+                    roomNum = messagePayload.getInt(ExICSProtocol.TAG_ROOM);
+                    examCode = messagePayload.getString(ExICSProtocol.TAG_EXAM);
+                    exICSData.appendToChatLog(username + " started " + examCode + " in room " + roomNum, context);
+                    break;
+
+                case ExICSMessageType.EXAM_PAUSE:
+                    username = messagePayload.getString(ExICSProtocol.TAG_USERNAME);
+                    roomNum = messagePayload.getInt(ExICSProtocol.TAG_ROOM);
+                    examCode = messagePayload.getString(ExICSProtocol.TAG_EXAM);
+                    Exam changed = exICSData.getExam(roomNum, examCode);
+                    if (changed.isPaused()) {
+                        exICSData.appendToChatLog(username + " paused " + examCode + " in room " + roomNum, context);
+                    } else {
+                        exICSData.appendToChatLog(username + " resumed " + examCode + " in room " + roomNum, context);
+                    }
+                    break;
+
+                case ExICSMessageType.EXAM_STOP:
+                    username = messagePayload.getString(ExICSProtocol.TAG_USERNAME);
+                    roomNum = messagePayload.getInt(ExICSProtocol.TAG_ROOM);
+                    examCode = messagePayload.getString(ExICSProtocol.TAG_EXAM);
+                    exICSData.appendToChatLog(username + " stopped " + examCode + " in room " + roomNum, context);
                     break;
 
                 case ExICSMessageType.FAILURE:
@@ -249,6 +280,69 @@ public class wsCommunicationManager {
             mConnection.sendTextMessage(message.toString());
         } catch (JSONException e) {
             broadcastFailure(e.getLocalizedMessage());
+        }
+    }
+
+    public static void startExam(int room, String examCode) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.EXAM_START);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_ROOM, room);
+            payload.put(ExICSProtocol.TAG_EXAM, examCode);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+            Log.e(TAG, "Failed to Start Exam", e);
+        }
+    }
+
+    public static void pauseExam(int room, String examCode) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.EXAM_PAUSE);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_ROOM, room);
+            payload.put(ExICSProtocol.TAG_EXAM, examCode);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+            Log.e(TAG, "Failed to Pause/Resume Exam", e);
+        }
+    }
+
+    public static void stopExam(int room, String examCode) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.EXAM_STOP);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_ROOM, room);
+            payload.put(ExICSProtocol.TAG_EXAM, examCode);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+            Log.e(TAG, "Failed to Start Exam", e);
         }
     }
 

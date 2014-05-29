@@ -45,11 +45,22 @@ public class RoomListFragmentListAdapter extends ArrayAdapter<Integer> {
             numExamsStartedInRoom.setText(String.valueOf(exICSData.getNumStartedExamsInRoom(rowRoomNum)));
 
             TextView numExamsPausedInRoom = (TextView) convertView.findViewById(R.id.tvNumExamsPausedInRoom);
-            numExamsPausedInRoom.setText("0");
-            statusIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.yellow_light));
+            numExamsPausedInRoom.setText(String.valueOf(exICSData.getNumPausedExamsInRoom(rowRoomNum)));
 
             TextView numInvigilatorsInRoom = (TextView) convertView.findViewById(R.id.tvNumInvigilatorsInRoom);
             numInvigilatorsInRoom.setText(String.valueOf(exICSData.getNumUsersInRoom(rowRoomNum)));
+
+            switch (exICSData.getLowestRoomStatus(rowRoomNum)) {
+                case 0:
+                    statusIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.red_light));
+                    break;
+                case 1:
+                    statusIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.yellow_light));
+                    break;
+                case 2:
+                    statusIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.green_light));
+                    break;
+            }
         }
 
         return convertView;

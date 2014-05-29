@@ -8,5 +8,6 @@ abstract public class BroadcastTags {
     public static final String TAG_DATA_UPDATED = "data_updated";
     public static final String TAG_CONNECTION_CLOSED = "connection_closed";
     public static final String TAG_FAILURE_OCCURRED = "failure_occured";
+    public static final String TAG_LOG_UPDATED = "log_updated";
 
 }

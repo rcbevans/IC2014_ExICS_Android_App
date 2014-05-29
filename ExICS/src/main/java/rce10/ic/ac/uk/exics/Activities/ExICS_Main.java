@@ -21,7 +21,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -29,7 +28,8 @@ import android.widget.Toast;
 import rce10.ic.ac.uk.exics.Fragments.ExICS_Log_History;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
-import rce10.ic.ac.uk.exics.Fragments.Room_List_Fragment;
+import rce10.ic.ac.uk.exics.Fragments.RoomListFragment;
+import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
@@ -45,13 +45,20 @@ public class ExICS_Main extends Activity
     private static final String TAG_ROOM_LIST_FRAGMENT = "ROOM_LIST_FRAGMENT";
 
     private static final String TAG = ExICS_Main.class.getName();
-
+    private BroadcastReceiver onChatLogUpdated = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                ((ExICS_Main_Child_Fragment_Interface) getFragmentManager().findFragmentById(R.id.flChatWindow)).refreshView();
+            } catch (ClassCastException e) {
+                Log.e(TAG, "Child Fragments Must Implement ExICS_Main_Child_Fragment_Interface", e);
+            }
+        }
+    };
     private static final String TAG_EXICS_MAIN_SHARED_PREFS = "EXICS_MAIN_SHARED_PREFS";
     private static final String TAG_CONFIRM_QUIT_SHOWING = "CONFIRM_QUIT_SHOWING";
-
     private static final String TAG_PROGRESS_SHOWING = "PROGRESS_SHOWING";
     private static final String TAG_PROGRESS_TEXT = "PROGRESS_TEXT";
-
     private static ExICSData exicsData = ExICSData.getInstance();
     private static wsCommunicationManager wsCM = null;
     private static String loadingSpinnerMessage = "";
@@ -66,9 +73,7 @@ public class ExICS_Main extends Activity
     private AlertDialog confirmQuitDialog;
     private Boolean holdWSOpen = false;
     private Boolean quitting = false;
-
     private Boolean chatPaneShowing = false;
-
     private ProgressDialog loadingSpinner = null;
     private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
         @Override
@@ -118,6 +123,12 @@ public class ExICS_Main extends Activity
             if (loadingSpinner != null && loadingSpinner.isShowing()) {
                 loadingSpinner.dismiss();
                 Toast.makeText(ExICS_Main.this, "Successfully restored connection to the server", Toast.LENGTH_LONG).show();
+            }
+
+            try {
+                ((ExICS_Main_Child_Fragment_Interface) getFragmentManager().findFragmentById(R.id.flMainContent)).refreshView();
+            } catch (ClassCastException e) {
+                Log.e(TAG, "Child Fragments Must Implement ExICS_Main_Child_Fragment_Interface", e);
             }
         }
     };
@@ -204,7 +215,7 @@ public class ExICS_Main extends Activity
     public void onBackPressed() {
         Log.i(TAG, "onBackPressed() Backstack: " + getFragmentManager().getBackStackEntryCount());
         FragmentManager fm = getFragmentManager();
-        if (fm.getBackStackEntryCount() > 0) {
+        if (fm.getBackStackEntryCount() > 0 && !chatPaneShowing) {
             fm.popBackStack();
         } else {
             if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
@@ -246,7 +257,7 @@ public class ExICS_Main extends Activity
         clearFragmentBackStack(fragmentManager);
         if (position == 0) {
             fragmentManager.beginTransaction()
-                    .replace(R.id.flMainContent, Room_List_Fragment.newInstance(), TAG_ROOM_LIST_FRAGMENT)
+                    .replace(R.id.flMainContent, RoomListFragment.newInstance(), TAG_ROOM_LIST_FRAGMENT)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
         } else {
@@ -407,12 +418,6 @@ public class ExICS_Main extends Activity
         return confirmBuilder.create();
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        Log.i(TAG, "onTouchEvent");
-        return super.onTouchEvent(event);
-    }
-
     private void attachFragmentSwipeListeners() {
         int screenOrientation = getResources().getConfiguration().orientation;
         if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -455,6 +460,7 @@ public class ExICS_Main extends Activity
     private void registerBroadcastReceivers() {
         LocalBroadcastManager.getInstance(this).registerReceiver(onAuthSuccessful, new IntentFilter(BroadcastTags.TAG_AUTH_SUCCESSFUL));
         LocalBroadcastManager.getInstance(this).registerReceiver(onDataUpdated, new IntentFilter(BroadcastTags.TAG_DATA_UPDATED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onChatLogUpdated, new IntentFilter(BroadcastTags.TAG_LOG_UPDATED));
         LocalBroadcastManager.getInstance(this).registerReceiver(onFailure, new IntentFilter(BroadcastTags.TAG_FAILURE_OCCURRED));
         LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionClosed, new IntentFilter(BroadcastTags.TAG_CONNECTION_CLOSED));
 
@@ -463,6 +469,7 @@ public class ExICS_Main extends Activity
     private void unregisterBroadcastReceivers() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onAuthSuccessful);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onDataUpdated);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onChatLogUpdated);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onFailure);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onConnectionClosed);
     }
@@ -489,8 +496,18 @@ public class ExICS_Main extends Activity
     }
 
     @Override
+    public void fragmentViewUnavailable() {
+        FragmentManager fm = getFragmentManager();
+        if (fm.getBackStackEntryCount() > 0 && !chatPaneShowing) {
+            fm.popBackStack();
+        } else {
+            onNavigationDrawerItemSelected(mNavigationDrawerFragment.getCurrentSelectedPosition());
+        }
+    }
+
+    @Override
     public void onFragmentSwipedLeft() {
-        Log.i(TAG, "onFragmentSwipedLeft " + chatPaneShowing);
+        Log.i(TAG, "onFragmentSwipedLeft");
         int screenOrientation = getResources().getConfiguration().orientation;
         if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
             if (!chatPaneShowing) {
@@ -501,7 +518,7 @@ public class ExICS_Main extends Activity
 
     @Override
     public void onFragmentSwipedRight() {
-        Log.i(TAG, "onFragmentSwipedRight " + chatPaneShowing);
+        Log.i(TAG, "onFragmentSwipedRight");
         int screenOrientation = getResources().getConfiguration().orientation;
         if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
             if (chatPaneShowing) {

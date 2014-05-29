@@ -6,5 +6,6 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="login_item_margin">10dp</dimen>
     <dimen name="navigation_drawer_width">240dp</dimen>
+    <dimen name="view_padding_default">5dip</dimen>
 
 </resources>

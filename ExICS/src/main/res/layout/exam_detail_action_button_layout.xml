@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llExamDetailActionButton"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/lighter_gray"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/ivButtonIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:padding="@dimen/view_padding_default"
+        android:scaleType="centerInside"
+        android:src="@android:drawable/ic_media_play" />
+
+    <TextView
+        android:id="@+id/tvButtonTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/view_padding_default"
+        android:text="Start Exam"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+</LinearLayout>

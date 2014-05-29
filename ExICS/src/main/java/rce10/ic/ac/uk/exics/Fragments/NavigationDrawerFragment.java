@@ -204,6 +204,10 @@ public class NavigationDrawerFragment extends Fragment {
         }
     }
 
+    public int getCurrentSelectedPosition() {
+        return mCurrentSelectedPosition;
+    }
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
