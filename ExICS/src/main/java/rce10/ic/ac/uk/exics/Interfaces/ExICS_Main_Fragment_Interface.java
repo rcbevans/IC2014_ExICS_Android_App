@@ -7,4 +7,8 @@ import android.app.Fragment;
  */
 public interface ExICS_Main_Fragment_Interface {
     public void updateContentFragment(Fragment frag);
+
+    public void onFragmentSwipedLeft();
+
+    public void onFragmentSwipedRight();
 }

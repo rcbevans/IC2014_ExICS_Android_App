@@ -9,8 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.R;
+import rce10.ic.ac.uk.exics.Utilities.FragmentOnSwipeTouchListener;
 
 public class ExICS_Log_History extends Fragment {
 
@@ -18,6 +20,8 @@ public class ExICS_Log_History extends Fragment {
 
     ScrollView logScrollView = null;
     TextView logText = null;
+
+    ExICS_Main_Fragment_Interface mCallbacks;
 
     public ExICS_Log_History() {
         // Required empty public constructor
@@ -43,6 +47,7 @@ public class ExICS_Log_History extends Fragment {
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_ex_ics_log_history, container, false);
         logScrollView = (ScrollView) inflatedView.findViewById(R.id.svChatLog);
+        logScrollView.setOnTouchListener(new FragmentOnSwipeTouchListener(this.getActivity().getApplicationContext(), mCallbacks));
         logText = (TextView) inflatedView.findViewById(R.id.tvExICSLog);
         updateLogText();
         return inflatedView;
@@ -52,17 +57,18 @@ public class ExICS_Log_History extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         updateLogText();
-//        try {
-//            mListener = (OnFragmentInteractionListener) activity;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
+        try {
+            mCallbacks = (ExICS_Main_Fragment_Interface) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement ExICS_Main_Fragment_Interface");
+        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
+        mCallbacks = null;
     }
 
     public void updateLogText() {
@@ -78,8 +84,4 @@ public class ExICS_Log_History extends Fragment {
             }
         }
     }
-
-    public interface OnFragmentInteractionListener {
-    }
-
 }

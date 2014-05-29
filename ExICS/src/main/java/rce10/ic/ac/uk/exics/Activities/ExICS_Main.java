@@ -21,7 +21,9 @@ import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import rce10.ic.ac.uk.exics.Fragments.ExICS_Log_History;
@@ -64,6 +66,8 @@ public class ExICS_Main extends Activity
     private AlertDialog confirmQuitDialog;
     private Boolean holdWSOpen = false;
     private Boolean quitting = false;
+
+    private Boolean chatPaneShowing = false;
 
     private ProgressDialog loadingSpinner = null;
     private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
@@ -198,9 +202,9 @@ public class ExICS_Main extends Activity
 
     @Override
     public void onBackPressed() {
-        Log.i(TAG, "onBackPressed()");
+        Log.i(TAG, "onBackPressed() Backstack: " + getFragmentManager().getBackStackEntryCount());
         FragmentManager fm = getFragmentManager();
-        if (fm.getBackStackEntryCount() < 0) {
+        if (fm.getBackStackEntryCount() > 0) {
             fm.popBackStack();
         } else {
             if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
@@ -332,7 +336,7 @@ public class ExICS_Main extends Activity
 
                     }
                 });
-
+        chatPaneShowing = true;
     }
 
     private void hideChatLog() {
@@ -371,6 +375,7 @@ public class ExICS_Main extends Activity
 
                     }
                 });
+        chatPaneShowing = false;
     }
 
     private AlertDialog createQuitConfirmationDialog(Bundle savedInstanceState) {
@@ -402,10 +407,17 @@ public class ExICS_Main extends Activity
         return confirmBuilder.create();
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.i(TAG, "onTouchEvent");
+        return super.onTouchEvent(event);
+    }
+
     private void attachFragmentSwipeListeners() {
         int screenOrientation = getResources().getConfiguration().orientation;
         if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
-            View mainContent = findViewById(R.id.flMainContent);
+            Log.i(TAG, "Attaching Fragment Swipe Listeners");
+            FrameLayout mainContent = (FrameLayout) findViewById(R.id.flMainContent);
             mainContent.setOnTouchListener(new OnSwipeTouchListener(ExICS_Main.this) {
                 @Override
                 public void onSwipeLeft() {
@@ -414,7 +426,7 @@ public class ExICS_Main extends Activity
                 }
             });
 
-            View chatWindow = findViewById(R.id.flChatWindow);
+            FrameLayout chatWindow = (FrameLayout) findViewById(R.id.flChatWindow);
             chatWindow.setOnTouchListener(new OnSwipeTouchListener(ExICS_Main.this) {
                 @Override
                 public void onSwipeRight() {
@@ -467,11 +479,34 @@ public class ExICS_Main extends Activity
 
     @Override
     public void updateContentFragment(Fragment frag) {
+        Log.i(TAG, "updateContentFragment" + frag.toString());
         FragmentManager fm = getFragmentManager();
         fm.beginTransaction()
                 .replace(R.id.flMainContent, frag)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void onFragmentSwipedLeft() {
+        Log.i(TAG, "onFragmentSwipedLeft " + chatPaneShowing);
+        int screenOrientation = getResources().getConfiguration().orientation;
+        if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (!chatPaneShowing) {
+                showChatLog();
+            }
+        }
+    }
+
+    @Override
+    public void onFragmentSwipedRight() {
+        Log.i(TAG, "onFragmentSwipedRight " + chatPaneShowing);
+        int screenOrientation = getResources().getConfiguration().orientation;
+        if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (chatPaneShowing) {
+                hideChatLog();
+            }
+        }
     }
 }

@@ -2,10 +2,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="rce10.ic.ac.uk.exics.Fragments.Room_List_Fragment">
 
+    <TextView
+        android:id="@+id/tvOverviewListTitle"
+        style="?android:attr/listSeparatorTextViewStyle"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="PLACEHOLDER" />
+
     <ListView
-        android:id="@+id/lvRoomList"
+        android:id="@+id/lvInformationList"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 

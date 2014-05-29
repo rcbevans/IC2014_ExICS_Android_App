@@ -97,6 +97,20 @@ public class ExICSData {
         return currentSession.get(room);
     }
 
+    public synchronized Exam getExam(int room, String courseCode) {
+        ArrayList<Exam> examList = currentSession.get(room);
+        if (examList == null) {
+            return null;
+        } else {
+            for (Exam exam : examList) {
+                if (exam.getExamSubModule().contentEquals(courseCode)) {
+                    return exam;
+                }
+            }
+            return null;
+        }
+    }
+
     public synchronized void addExam(Exam exam) {
         ArrayList<Exam> examList = currentSession.get(exam.getRoom());
         if (examList == null)

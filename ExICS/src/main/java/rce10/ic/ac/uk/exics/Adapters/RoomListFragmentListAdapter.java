@@ -54,4 +54,11 @@ public class RoomListFragmentListAdapter extends ArrayAdapter<Integer> {
 
         return convertView;
     }
+
+    public int getRoomNumAtPosition(int pos) {
+        if (pos < values.length)
+            return values[pos];
+        else
+            throw new IllegalArgumentException("Requested room number outside data bounds!");
+    }
 }

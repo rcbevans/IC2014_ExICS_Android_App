@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="5dip">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Exam: " />
+
+        <TextView
+            android:id="@+id/tvExamCode"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="C103=MC111" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="# Questions:" />
+
+            <TextView
+                android:id="@+id/tvStartText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="Scheduled Start:" />
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="Duration:" />
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="Scheduled End:" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNumQuestions"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="4" />
+
+            <TextView
+                android:id="@+id/tvScheduledStartTime"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="10:11" />
+
+            <TextView
+                android:id="@+id/tvExamDuration"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="120" />
+
+            <TextView
+                android:id="@+id/tvScheduledEndTime"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="12:11" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivExamStatus"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.8"
+        android:adjustViewBounds="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/green_light" />
+    
+</LinearLayout>

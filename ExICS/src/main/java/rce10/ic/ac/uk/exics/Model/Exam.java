@@ -24,6 +24,7 @@ public class Exam {
     private Calendar actualStart;
     private Calendar finish;
     private Boolean running;
+    private Boolean paused;
 
     public Exam(String examCode, String examTitle, int numQs, int duration, int xtime, int room, String scheduledStartJSON, String actualStartJSON, String finishJSON, Boolean examRunning) {
         this.examSubModule = examCode;
@@ -52,6 +53,8 @@ public class Exam {
 
         //this.running = examRunning.contentEquals("true") ? true : false;
         this.running = examRunning;
+        //NEED TO IMPLEMENT THIS PROPERLY!
+        this.paused = false;
     }
 
     public String getExamSubModule() {
@@ -133,4 +136,14 @@ public class Exam {
     public void setRunning(Boolean running) {
         this.running = running;
     }
+
+    public Boolean isPaused() {
+        return this.paused;
+    }
+
+    public void setPaused() {
+        this.paused = paused;
+    }
+
+    ;
 }
