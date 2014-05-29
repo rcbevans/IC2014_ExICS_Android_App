@@ -26,6 +26,9 @@ abstract public class ExICSProtocol {
     public static final String TAG_DURATION = "duration";
     public static final String TAG_DATE = "date";
     public static final String TAG_RUNNING = "running";
+    public static final String TAG_PAUSED = "paused";
+    public static final String TAG_RESUMED = "resumed";
+    public static final String TAG_PAUSE_TIMINGS = "pauseTimings";
     public static final String TAG_START = "start";
     public static final String TAG_FINISH = "finish";
     public static final String TAG_EXTRA_TIME = "xTime";

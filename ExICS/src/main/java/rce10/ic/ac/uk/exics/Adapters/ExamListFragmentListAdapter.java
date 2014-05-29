@@ -34,7 +34,7 @@ public class ExamListFragmentListAdapter extends ArrayAdapter<Exam> {
         if (position < exams.length) {
             Exam rowExam = exams[position];
             TextView examCode = (TextView) convertView.findViewById(R.id.tvExamCode);
-            TextView numQns = (TextView) convertView.findViewById(R.id.tvNumQuestions);
+//            TextView numQns = (TextView) convertView.findViewById(R.id.tvNumQuestions);
             TextView startText = (TextView) convertView.findViewById(R.id.tvStartText);
             TextView schedStartTime = (TextView) convertView.findViewById(R.id.tvScheduledStartTime);
             TextView examDuration = (TextView) convertView.findViewById(R.id.tvExamDuration);
@@ -42,29 +42,22 @@ public class ExamListFragmentListAdapter extends ArrayAdapter<Exam> {
             ImageView examStatus = (ImageView) convertView.findViewById(R.id.ivExamStatus);
 
             examCode.setText(rowExam.getExamSubModule());
-            numQns.setText(String.valueOf(rowExam.getNumQuestions()));
+//            numQns.setText(String.valueOf(rowExam.getNumQuestions()));
             examDuration.setText(String.valueOf(rowExam.getDuration()));
 
             if (rowExam.isRunning()) {
                 startText.setText("Started:");
                 schedStartTime.setText(android.text.format.DateFormat.format("HH:mm", rowExam.getActualStart().getTime()));
+
+                Calendar startTime = rowExam.getActualStart();
+                startTime.add(Calendar.MINUTE, rowExam.getDuration());
+                startTime.add(Calendar.MINUTE, rowExam.getExtraTime());
+                startTime.add(Calendar.MINUTE, rowExam.getTimePaused());
+                schedFinishTime.setText(android.text.format.DateFormat.format("HH:mm", startTime.getTime()));
+
                 if (rowExam.isPaused()) {
-                    schedStartTime.setText(android.text.format.DateFormat.format("HH:mm", rowExam.getActualStart().getTime()));
-
-                    Calendar startTime = rowExam.getActualStart();
-                    startTime.add(Calendar.MINUTE, rowExam.getDuration());
-                    startTime.add(Calendar.MINUTE, rowExam.getExtraTime());
-                    schedFinishTime.setText(android.text.format.DateFormat.format("HH:mm", startTime.getTime()));
-
                     examStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.yellow_light));
                 } else {
-                    schedStartTime.setText(android.text.format.DateFormat.format("HH:mm", rowExam.getActualStart().getTime()));
-
-                    Calendar startTime = rowExam.getActualStart();
-                    startTime.add(Calendar.MINUTE, rowExam.getDuration());
-                    startTime.add(Calendar.MINUTE, rowExam.getExtraTime());
-                    schedFinishTime.setText(android.text.format.DateFormat.format("HH:mm", startTime.getTime()));
-
                     examStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.green_light));
                 }
             } else {

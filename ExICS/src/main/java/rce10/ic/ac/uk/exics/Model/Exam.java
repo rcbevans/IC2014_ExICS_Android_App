@@ -3,7 +3,10 @@ package rce10.ic.ac.uk.exics.Model;
 import android.util.Log;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 import rce10.ic.ac.uk.exics.Utilities.ISO8601DateParser;
 
@@ -25,8 +28,9 @@ public class Exam {
     private Calendar finish;
     private Boolean running;
     private Boolean paused;
+    private ArrayList<PauseResumePair> pauseResumePairs;
 
-    public Exam(String examCode, String examTitle, int numQs, int duration, int xtime, int room, String scheduledStartJSON, String actualStartJSON, String finishJSON, Boolean examRunning) {
+    public Exam(String examCode, String examTitle, int numQs, int duration, int xtime, int room, String scheduledStartJSON, String actualStartJSON, String finishJSON, Boolean examRunning, Boolean paused, ArrayList<PauseResumePair> pauseResumePairs) {
         this.examSubModule = examCode;
         this.title = examTitle;
         this.numQuestions = numQs;
@@ -54,7 +58,8 @@ public class Exam {
         //this.running = examRunning.contentEquals("true") ? true : false;
         this.running = examRunning;
         //NEED TO IMPLEMENT THIS PROPERLY!
-        this.paused = false;
+        this.paused = paused;
+        this.pauseResumePairs = pauseResumePairs;
     }
 
     public String getExamSubModule() {
@@ -141,9 +146,22 @@ public class Exam {
         return this.paused;
     }
 
-    public void setPaused() {
+    public void setPaused(Boolean paused) {
         this.paused = paused;
     }
 
-    ;
+    public int getTimePaused() {
+        int timePausedMins = 0;
+        for (PauseResumePair pair : pauseResumePairs) {
+            if (pair.getTimeResumed() != null) {
+                long diffMillis = pair.getTimeResumed().getTime().getTime() - pair.getTimePaused().getTime().getTime();
+                timePausedMins += TimeUnit.MILLISECONDS.toMinutes(diffMillis);
+            } else {
+                Calendar now = new GregorianCalendar();
+                long diffMillis = now.getTime().getTime() - pair.getTimePaused().getTime().getTime();
+                timePausedMins += TimeUnit.MILLISECONDS.toMinutes(diffMillis);
+            }
+        }
+        return timePausedMins;
+    }
 }

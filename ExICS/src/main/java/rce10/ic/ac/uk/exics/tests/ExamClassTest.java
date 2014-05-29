@@ -2,9 +2,12 @@ package rce10.ic.ac.uk.exics.tests;
 
 import android.test.InstrumentationTestCase;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import rce10.ic.ac.uk.exics.Model.Exam;
+import rce10.ic.ac.uk.exics.Model.PauseResumePair;
 import rce10.ic.ac.uk.exics.Utilities.ISO8601DateParser;
 
 ;
@@ -25,8 +28,11 @@ public class ExamClassTest extends InstrumentationTestCase {
         String start = "2013-04-29T09:00:00.000Z";
         String finish = "null";
         Boolean running = false;
+        Boolean paused = false;
 
-        return new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running);
+        ArrayList<PauseResumePair> pairs = new ArrayList<PauseResumePair>();
+
+        return new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running, paused, pairs);
     }
 
     public void testConstructor() throws Exception {
@@ -111,6 +117,18 @@ public class ExamClassTest extends InstrumentationTestCase {
         assertTrue(testExam.isRunning());
     }
 
+    public void testGetPaused() throws Exception {
+        Exam testExam = setUpExam();
+        assertFalse(testExam.isPaused());
+    }
+
+    public void testSetPaused() throws Exception {
+        Exam testExam = setUpExam();
+        testExam.setPaused(true);
+        assertTrue(testExam.isPaused());
+    }
+
+
     public void testGetDate() throws Exception {
         Exam testExam = setUpExam();
         String date = "2013-04-29T09:00:00.000Z";
@@ -128,5 +146,42 @@ public class ExamClassTest extends InstrumentationTestCase {
         assertEquals(testExam.getScheduledStart(), examStart);
         Calendar newCal = testExam.getScheduledStart();
         assertEquals(newCal.get(Calendar.HOUR_OF_DAY), 12);
+    }
+
+    public void testGetTimePaused() throws Exception {
+        String examCode = "C231=MC231";
+        String title = "Intro to AI";
+        int numQs = 2;
+        int duration = 75;
+        int xTime = 0;
+        int room = 341;
+        String date = "2013-04-29T09:00:00.000Z";
+        String start = "2013-04-29T09:00:00.000Z";
+        String finish = "null";
+        Boolean running = false;
+        Boolean paused = false;
+
+        Calendar startTime = new GregorianCalendar();
+        Calendar finTime = (Calendar) startTime.clone();
+        finTime.add(Calendar.MINUTE, 15);
+
+        ISO8601DateParser parser = new ISO8601DateParser();
+        ArrayList<PauseResumePair> pairs = new ArrayList<PauseResumePair>();
+        PauseResumePair pair = new PauseResumePair(ISO8601DateParser.toString(startTime), ISO8601DateParser.toString(finTime));
+        pairs.add(pair);
+
+        Exam testExam = new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running, paused, pairs);
+
+        assertEquals(15, testExam.getTimePaused());
+
+        Calendar sTime2 = new GregorianCalendar();
+        Calendar fTime2 = (Calendar) sTime2.clone();
+        fTime2.add(Calendar.MINUTE, 40);
+
+        pairs.add(new PauseResumePair(parser.toString(sTime2), parser.toString(fTime2)));
+
+        testExam = new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running, paused, pairs);
+
+        assertEquals(55, testExam.getTimePaused());
     }
 }

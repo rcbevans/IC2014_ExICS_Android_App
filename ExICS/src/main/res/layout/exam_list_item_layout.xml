@@ -38,11 +38,11 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:text="# Questions:" />
+            <!--<TextView-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:gravity="end"-->
+            <!--android:text="# Questions:" />-->
 
             <TextView
                 android:id="@+id/tvStartText"
@@ -71,11 +71,11 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvNumQuestions"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="4" />
+            <!--<TextView-->
+            <!--android:id="@+id/tvNumQuestions"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="4" />-->
 
             <TextView
                 android:id="@+id/tvScheduledStartTime"
@@ -107,5 +107,5 @@
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
         android:src="@drawable/green_light" />
-    
+
 </LinearLayout>

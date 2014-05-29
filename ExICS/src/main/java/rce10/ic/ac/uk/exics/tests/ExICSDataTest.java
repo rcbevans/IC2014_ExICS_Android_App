@@ -7,6 +7,7 @@ import java.util.Set;
 
 import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.Exam;
+import rce10.ic.ac.uk.exics.Model.PauseResumePair;
 import rce10.ic.ac.uk.exics.Model.User;
 
 /**
@@ -25,8 +26,11 @@ public class ExICSDataTest extends InstrumentationTestCase {
         String start = "2013-04-29T09:00:00.000Z";
         String finish = "null";
         Boolean running = false;
+        Boolean paused = false;
 
-        return new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running);
+        ArrayList<PauseResumePair> pairs = new ArrayList<PauseResumePair>();
+
+        return new Exam(examCode, title, numQs, duration, xTime, room, date, start, finish, running, paused, pairs);
     }
 
     private User setUpUser() {

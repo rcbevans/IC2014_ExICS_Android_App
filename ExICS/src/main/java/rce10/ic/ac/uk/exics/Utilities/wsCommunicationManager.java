@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import de.tavendo.autobahn.WebSocketConnection;
@@ -20,6 +21,7 @@ import rce10.ic.ac.uk.exics.Model.ExICSException;
 import rce10.ic.ac.uk.exics.Model.ExICSMessageType;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
 import rce10.ic.ac.uk.exics.Model.Exam;
+import rce10.ic.ac.uk.exics.Model.PauseResumePair;
 import rce10.ic.ac.uk.exics.Model.User;
 
 /**
@@ -176,14 +178,22 @@ public class wsCommunicationManager {
                     int examDuration = exam.getInt(ExICSProtocol.TAG_DURATION);
                     String scheduledStart = exam.getString(ExICSProtocol.TAG_DATE);
                     Boolean running = exam.getBoolean(ExICSProtocol.TAG_RUNNING);
+                    Boolean paused = exam.getBoolean(ExICSProtocol.TAG_PAUSED);
                     String start = exam.getString(ExICSProtocol.TAG_START);
                     String finish = exam.getString(ExICSProtocol.TAG_FINISH);
                     int extraTime = exam.getInt(ExICSProtocol.TAG_EXTRA_TIME);
-//                    int examRoom = Integer.parseInt(roomNumber);
                     String examRoomString = exam.getString(ExICSProtocol.TAG_ROOM);
                     int examRoom = Integer.parseInt(examRoomString);
 
-                    Exam newExam = new Exam(examCode, examTitle, numQs, examDuration, extraTime, examRoom, scheduledStart, start, finish, running);
+                    ArrayList<PauseResumePair> pauseResumeTimings = new ArrayList<PauseResumePair>();
+                    JSONArray pauseResumePairArray = exam.getJSONArray(ExICSProtocol.TAG_PAUSE_TIMINGS);
+                    for (int j = 0; j < pauseResumePairArray.length(); j++) {
+                        JSONObject pauseResumePairJSON = pauseResumePairArray.getJSONObject(j);
+                        PauseResumePair pair = new PauseResumePair(pauseResumePairJSON.getString(ExICSProtocol.TAG_PAUSED), pauseResumePairJSON.getString(ExICSProtocol.TAG_RESUMED));
+                        pauseResumeTimings.add(pair);
+                    }
+
+                    Exam newExam = new Exam(examCode, examTitle, numQs, examDuration, extraTime, examRoom, scheduledStart, start, finish, running, paused, pauseResumeTimings);
                     exICSData.addExam(newExam);
                 }
             }
