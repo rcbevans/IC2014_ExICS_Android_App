@@ -25,7 +25,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import rce10.ic.ac.uk.exics.Fragments.ExICS_Log_History;
+import rce10.ic.ac.uk.exics.Fragments.LogHistoryFragment;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
 import rce10.ic.ac.uk.exics.Fragments.RoomListFragment;
@@ -106,7 +106,7 @@ public class ExICS_Main extends Activity
             if (loadingSpinner != null && loadingSpinner.isShowing()) {
                 loadingSpinner.dismiss();
                 String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
-                Toast.makeText(ExICS_Main.this, "The connection to the server was closed... Reason Given: " + reason + "... Are the credentials you provided correct?", Toast.LENGTH_LONG).show();
+                Toast.makeText(ExICS_Main.this, "The connection to the server could not be reopened... Reason Given: " + reason, Toast.LENGTH_LONG).show();
                 quitToLogin();
             }
             if (!quitting) {
@@ -445,15 +445,17 @@ public class ExICS_Main extends Activity
 
     private void setUpChatWindow() {
         Fragment chatFragment = getFragmentManager().findFragmentByTag(TAG_CHAT_FRAGMENT);
-        if (chatFragment == null || !(chatFragment instanceof ExICS_Log_History)) {
+        if (chatFragment == null || !(chatFragment instanceof LogHistoryFragment)) {
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.flChatWindow, ExICS_Log_History.newInstance(), TAG_CHAT_FRAGMENT)
+                    .replace(R.id.flChatWindow, LogHistoryFragment.newInstance(), TAG_CHAT_FRAGMENT)
                     .commit();
         }
     }
 
     private void attemptWSReconnect() {
+        loadingSpinner.setMessage("Attemping to reconnect...");
+        loadingSpinner.show();
         wsCM.connectToServer(exicsData.getServerHostname(), exicsData.getServerPort());
     }
 
@@ -503,6 +505,11 @@ public class ExICS_Main extends Activity
         } else {
             onNavigationDrawerItemSelected(mNavigationDrawerFragment.getCurrentSelectedPosition());
         }
+    }
+
+    @Override
+    public Context getActivityContext() {
+        return this;
     }
 
     @Override

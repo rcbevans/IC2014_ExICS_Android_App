@@ -63,6 +63,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             if (exam == null) {
                 throw new NullPointerException("exam is null");
             }
+        } else {
+            mCallbacks.fragmentViewUnavailable();
         }
     }
 

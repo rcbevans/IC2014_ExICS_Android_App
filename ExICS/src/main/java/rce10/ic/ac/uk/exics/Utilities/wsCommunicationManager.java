@@ -113,9 +113,8 @@ public class wsCommunicationManager {
 
             int messageType = messageHeader.getInt(ExICSProtocol.TAG_MESSAGE_TYPE);
 
-            String username;
+            String username, sender, examCode, msg;
             int roomNum;
-            String examCode;
 
             switch (messageType) {
                 case ExICSMessageType.PROTOCOL_HANDSHAKE:
@@ -154,6 +153,24 @@ public class wsCommunicationManager {
                     roomNum = messagePayload.getInt(ExICSProtocol.TAG_ROOM);
                     examCode = messagePayload.getString(ExICSProtocol.TAG_EXAM);
                     exICSData.appendToChatLog(username + " stopped " + examCode + " in room " + roomNum, context);
+                    break;
+
+                case ExICSMessageType.SEND_MESSAGE_ALL:
+                    sender = messageHeader.getString(ExICSProtocol.TAG_SENDER);
+                    msg = messagePayload.getString(ExICSProtocol.TAG_MESSAGE);
+                    exICSData.appendToChatLog(String.format("%s in room %d says: %s", sender, exICSData.getUserRoom(sender), msg), context);
+                    break;
+
+                case ExICSMessageType.SEND_MESSAGE_ROOM:
+                    sender = messageHeader.getString(ExICSProtocol.TAG_SENDER);
+                    msg = messagePayload.getString(ExICSProtocol.TAG_MESSAGE);
+                    exICSData.appendToChatLog(String.format("%s in room %d says: %s", sender, exICSData.getUserRoom(sender), msg), context);
+                    break;
+
+                case ExICSMessageType.SEND_MESSAGE_USER:
+                    sender = messageHeader.getString(ExICSProtocol.TAG_SENDER);
+                    msg = messagePayload.getString(ExICSProtocol.TAG_MESSAGE);
+                    exICSData.appendToChatLog(String.format("%s in room %d says: %s", sender, exICSData.getUserRoom(sender), msg), context);
                     break;
 
                 case ExICSMessageType.FAILURE:
@@ -346,4 +363,68 @@ public class wsCommunicationManager {
         }
     }
 
+    public static void sendMessageToAll(String msg) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.SEND_MESSAGE_ALL);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_MESSAGE, msg);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+            exICSData.appendToChatLog(String.format("Sent message to all users: %s", msg), context);
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+            Log.e(TAG, "Failed to Send Message To All", e);
+        }
+    }
+
+    public static void sendMessageToAllInRoom(int room, String msg) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.SEND_MESSAGE_ROOM);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_ROOM, room);
+            payload.put(ExICSProtocol.TAG_MESSAGE, msg);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+            exICSData.appendToChatLog(String.format("Sent message to room %d: %s", room, msg), context);
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+            Log.e(TAG, "Failed to Send Message To All in Room", e);
+        }
+    }
+
+    public static void sendMessageToUser(String user, String msg) {
+        try {
+            JSONObject header = new JSONObject();
+            header.put(ExICSProtocol.TAG_MESSAGE_TYPE, ExICSMessageType.SEND_MESSAGE_USER);
+            header.put(ExICSProtocol.TAG_SENDER, exICSData.getUsername());
+
+            JSONObject payload = new JSONObject();
+            payload.put(ExICSProtocol.TAG_USERNAME, user);
+            payload.put(ExICSProtocol.TAG_MESSAGE, msg);
+
+            JSONObject message = new JSONObject();
+            message.put(ExICSProtocol.TAG_HEADER, header);
+            message.put(ExICSProtocol.TAG_PAYLOAD, payload);
+
+            mConnection.sendTextMessage(message.toString());
+            exICSData.appendToChatLog(String.format("Sent message to user %s: %s", user, msg), context);
+        } catch (JSONException e) {
+            broadcastFailure(e.getLocalizedMessage());
+            Log.e(TAG, "Failed to Send Message To All in Room", e);
+        }
+    }
 }
