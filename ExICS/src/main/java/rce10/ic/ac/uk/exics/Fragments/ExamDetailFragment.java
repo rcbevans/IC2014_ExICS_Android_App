@@ -1,7 +1,9 @@
 package rce10.ic.ac.uk.exics.Fragments;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,6 +38,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
     private String courseCode;
     private wsCommunicationManager wsCM;
 
+    private AlertDialog confirmStopExamDialog;
+
     private Exam exam;
 
     public ExamDetailFragment() {
@@ -57,6 +61,29 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
         if (getArguments() != null) {
             roomNum = getArguments().getInt(TAG_ROOM_NUM);
             courseCode = getArguments().getString(TAG_COURSE_CODE);
+
+            AlertDialog.Builder confirmStopBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+            confirmStopBuilder.setTitle(String.format("Stop Exam %s?", courseCode));
+            confirmStopBuilder.setMessage("Are you sure you want to stop this exam?\nThis action can't be undone...");
+            confirmStopBuilder.setCancelable(true).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    dialog.dismiss();
+                }
+            });
+            confirmStopBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            }).setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    wsCM.stopExam(exam.getRoom(), exam.getExamSubModule());
+                }
+            });
+            confirmStopExamDialog = confirmStopBuilder.create();
 
             exam = exICSData.getExam(roomNum, courseCode);
             wsCM = wsCommunicationManager.getInstance(getActivity().getApplicationContext());
@@ -226,7 +253,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             stopActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    wsCM.stopExam(exam.getRoom(), exam.getExamSubModule());
+                    if (confirmStopExamDialog != null && !confirmStopExamDialog.isShowing())
+                        confirmStopExamDialog.show();
                 }
             });
             actionButtionPanel.addView(stopActionButton);

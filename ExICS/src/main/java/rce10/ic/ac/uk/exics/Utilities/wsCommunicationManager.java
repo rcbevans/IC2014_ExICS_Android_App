@@ -123,9 +123,9 @@ public class wsCommunicationManager {
                     break;
 
                 case ExICSMessageType.SYSTEM_STATE:
-                    exICSData.appendToChatLog("System State Updated", context);
                     exICSData.clearSystemState();
                     processSystemData(messagePayload);
+                    exICSData.appendToChatLog("System State Updated", context);
                     broadcastDataUpdated();
                     break;
 

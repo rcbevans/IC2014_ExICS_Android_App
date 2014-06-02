@@ -22,9 +22,12 @@ import java.util.Set;
 
 import rce10.ic.ac.uk.exics.Adapters.MessageSendRecipientSpinnerAdapter;
 import rce10.ic.ac.uk.exics.Adapters.MessageSendRecipientTypeSpinnerAdapter;
+import rce10.ic.ac.uk.exics.Adapters.PresetMessagesSpinnerAdapter;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
+import rce10.ic.ac.uk.exics.Model.ExICSPresetMessages;
+import rce10.ic.ac.uk.exics.Model.PresetMessage;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.FragmentOnSwipeTouchListener;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
@@ -79,6 +82,7 @@ public class LogHistoryFragment extends Fragment implements ExICS_Main_Child_Fra
             public void onClick(DialogInterface dialog, int which) {
                 presetDialog = createPresetMessageDialog();
                 dialog.dismiss();
+                presetDialog.show();
             }
         }).setPositiveButton("Custom Message", new DialogInterface.OnClickListener() {
             @Override
@@ -92,9 +96,110 @@ public class LogHistoryFragment extends Fragment implements ExICS_Main_Child_Fra
     }
 
     private AlertDialog createPresetMessageDialog() {
-        AlertDialog.Builder presetBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
-        presetBuilder.setTitle("Preset Message");
-        return presetBuilder.create();
+        AlertDialog.Builder customBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+        View customDialogView = getActivity().getLayoutInflater().inflate(R.layout.preset_message_dialog, null, false);
+        final LinearLayout recipientSelect = (LinearLayout) customDialogView.findViewById(R.id.llRecipientSelect);
+        final Spinner recipientTypeSpinner = (Spinner) customDialogView.findViewById(R.id.spPresetMessageRecipientType);
+        final Spinner recipientSpinner = (Spinner) customDialogView.findViewById(R.id.spPresetMessageRecipient);
+        final Spinner messageSpinner = (Spinner) customDialogView.findViewById(R.id.spPresetMessageSelect);
+        final TextView messagePreview = (TextView) customDialogView.findViewById(R.id.tvPresetMessagePreview);
+
+        MessageSendRecipientTypeSpinnerAdapter msrsta = new MessageSendRecipientTypeSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, new String[]{"All", "Room", "Individual"});
+        recipientTypeSpinner.setAdapter(msrsta);
+        recipientTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                MessageSendRecipientTypeSpinnerAdapter ad = (MessageSendRecipientTypeSpinnerAdapter) recipientTypeSpinner.getAdapter();
+                String selected = ad.getSelectedType(position);
+                if (selected.contentEquals("All")) {
+                    recipientSelect.setVisibility(View.GONE);
+                    recipientSpinner.setAdapter(new MessageSendRecipientSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, new String[]{""}));
+                } else if (selected.contentEquals("Room")) {
+                    Set<Integer> roomsSet = exICSData.getAllRooms();
+                    ArrayList<String> roomsArrayList = new ArrayList<String>();
+                    for (Integer room : roomsSet) {
+                        roomsArrayList.add(String.valueOf(room));
+                    }
+                    roomsArrayList.add("Delocalised");
+                    String[] roomsArray = new String[roomsArrayList.size()];
+                    roomsArray = roomsArrayList.toArray(roomsArray);
+                    recipientSpinner.setAdapter(new MessageSendRecipientSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, roomsArray));
+                    recipientSelect.setVisibility(View.VISIBLE);
+                } else {
+                    Set<String> allUsersSet = exICSData.getAllUsers();
+                    ArrayList<String> allUsersArrayList = new ArrayList<String>();
+                    for (String user : allUsersSet) {
+                        if (!(user.contentEquals(exICSData.getUsername())))
+                            allUsersArrayList.add(user);
+                    }
+                    String[] allUsersArray = new String[allUsersArrayList.size()];
+                    allUsersArray = allUsersArrayList.toArray(allUsersArray);
+                    recipientSpinner.setAdapter(new MessageSendRecipientSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, allUsersArray));
+                    recipientSelect.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                recipientSelect.setVisibility(View.VISIBLE);
+                recipientSpinner.setAdapter(new MessageSendRecipientSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, new String[]{""}));
+            }
+        });
+        recipientSpinner.setAdapter(new MessageSendRecipientSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, new String[]{""}));
+
+        ExICSPresetMessages pMessages = new ExICSPresetMessages();
+        ArrayList<PresetMessage> pMessagesArrayList = pMessages.getPresetMessages();
+        PresetMessage[] pMessagesArray = new PresetMessage[pMessagesArrayList.size()];
+        pMessagesArray = pMessagesArrayList.toArray(pMessagesArray);
+        messageSpinner.setAdapter(new PresetMessagesSpinnerAdapter(getActivity(), android.R.layout.simple_spinner_dropdown_item, pMessagesArray));
+        messageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                PresetMessage selected = (PresetMessage) parent.getSelectedItem();
+                messagePreview.setText(selected.getMessage());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                messagePreview.setText("Please select a message above");
+            }
+        });
+
+        customBuilder.setTitle("Custom Message");
+        customBuilder.setView(customDialogView);
+        customBuilder.setCancelable(true).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                dialog.dismiss();
+            }
+        });
+        customBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).setPositiveButton("Send", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String recipientType = (String) recipientTypeSpinner.getSelectedItem();
+                String message = ((PresetMessage) messageSpinner.getSelectedItem()).getMessage();
+
+                if (recipientType.contentEquals("All")) {
+                    wsCM.sendMessageToAll(message);
+                } else if (recipientType.contentEquals("Room")) {
+                    String room = (String) recipientSpinner.getSelectedItem();
+                    if (room.contentEquals("Delocalised")) {
+                        wsCM.sendMessageToAllInRoom(-3, message);
+                    } else {
+                        wsCM.sendMessageToAllInRoom(Integer.valueOf(room), message);
+                    }
+                } else {
+                    String user = (String) recipientSpinner.getSelectedItem();
+                    wsCM.sendMessageToUser(user, message);
+                }
+            }
+        });
+        return customBuilder.create();
     }
 
     private AlertDialog createCustomMessageDialog() {
