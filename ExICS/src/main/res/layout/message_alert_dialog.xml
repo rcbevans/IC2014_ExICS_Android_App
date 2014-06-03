@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/view_padding_default"
+    tools:context=".Activities.ExICS_Main">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="2.1"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sender:" />
+
+        <TextView
+            android:id="@+id/tvMessageAlertSender"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="rce10" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="fill_parent"
+            android:background="@color/lighter_gray" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Room:" />
+
+        <TextView
+            android:id="@+id/tvMessageAlertRoom"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="401" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="@color/lighter_gray" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1.4"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="10"
+            android:text="Message:" />
+
+        <TextView
+            android:id="@+id/tvMessageAlertMessage"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:paddingLeft="@dimen/activity_vertical_margin"
+            android:text="This is the message" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="@color/lighter_gray" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="5"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:text="Reply:" />
+
+            <Spinner
+                android:id="@+id/spMessageAlertReply"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"></Spinner>
+        </LinearLayout>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="@color/lighter_gray" />
+
+        <LinearLayout
+            android:id="@+id/llMessageAlertMessagePreview"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="6"
+                android:text="Preview:" />
+
+            <TextView
+                android:id="@+id/tvMessageAlertPreview"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:paddingLeft="@dimen/activity_vertical_margin"
+                android:text="This is a message preview" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llMessageAlertCustomReply"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:text="Custom Reply:" />
+
+            <EditText
+                android:id="@+id/etMessageAlertCustomResponse"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:hint="Enter Custom Response Here"
+                android:paddingLeft="@dimen/activity_vertical_margin" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

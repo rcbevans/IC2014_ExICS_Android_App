@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 
 import de.tavendo.autobahn.WebSocketConnection;
@@ -159,18 +160,21 @@ public class wsCommunicationManager {
                     sender = messageHeader.getString(ExICSProtocol.TAG_SENDER);
                     msg = messagePayload.getString(ExICSProtocol.TAG_MESSAGE);
                     exICSData.appendToChatLog(String.format("%s in room %d says: %s", sender, exICSData.getUserRoom(sender), msg), context);
+                    broadcastMessageReceived(messageHeader, messagePayload);
                     break;
 
                 case ExICSMessageType.SEND_MESSAGE_ROOM:
                     sender = messageHeader.getString(ExICSProtocol.TAG_SENDER);
                     msg = messagePayload.getString(ExICSProtocol.TAG_MESSAGE);
                     exICSData.appendToChatLog(String.format("%s in room %d says: %s", sender, exICSData.getUserRoom(sender), msg), context);
+                    broadcastMessageReceived(messageHeader, messagePayload);
                     break;
 
                 case ExICSMessageType.SEND_MESSAGE_USER:
                     sender = messageHeader.getString(ExICSProtocol.TAG_SENDER);
                     msg = messagePayload.getString(ExICSProtocol.TAG_MESSAGE);
                     exICSData.appendToChatLog(String.format("%s in room %d says: %s", sender, exICSData.getUserRoom(sender), msg), context);
+                    broadcastMessageReceived(messageHeader, messagePayload);
                     break;
 
                 case ExICSMessageType.FAILURE:
@@ -271,6 +275,20 @@ public class wsCommunicationManager {
         Intent broadcast = new Intent(BroadcastTags.TAG_CONNECTION_CLOSED);
         broadcast.putExtra(ExICSProtocol.TAG_REASON, reason);
         LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
+    }
+
+    private static void broadcastMessageReceived(JSONObject header, JSONObject payload) {
+        try {
+            Intent broadcast = new Intent(BroadcastTags.TAG_MESSAGE_RECEIVED);
+            broadcast.putExtra(ExICSProtocol.TAG_SENDER, header.getString(ExICSProtocol.TAG_SENDER));
+            broadcast.putExtra(ExICSProtocol.TAG_ROOM, exICSData.getUserRoom(header.getString(ExICSProtocol.TAG_SENDER)));
+            broadcast.putExtra(ExICSProtocol.TAG_TIME, new GregorianCalendar());
+            broadcast.putExtra(ExICSProtocol.TAG_MESSAGE, payload.getString(ExICSProtocol.TAG_MESSAGE));
+            LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            broadcastFailure(e.getLocalizedMessage());
+        }
     }
 
     public static Boolean isConnected() {

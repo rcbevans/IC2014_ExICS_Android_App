@@ -22,9 +22,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+
+import rce10.ic.ac.uk.exics.Adapters.PresetMessagesSpinnerAdapter;
 import rce10.ic.ac.uk.exics.Fragments.LogHistoryFragment;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
@@ -33,7 +42,10 @@ import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
 import rce10.ic.ac.uk.exics.Model.ExICSData;
+import rce10.ic.ac.uk.exics.Model.ExICSMessage;
+import rce10.ic.ac.uk.exics.Model.ExICSPresetMessages;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
+import rce10.ic.ac.uk.exics.Model.PresetMessage;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.OnSwipeTouchListener;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
@@ -88,7 +100,7 @@ public class ExICS_Main extends Activity
     private BroadcastReceiver onFailure = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "Received Broadcast onReceive");
+            Log.i(TAG, "Received Broadcast onFailure");
             if (loadingSpinner != null && loadingSpinner.isShowing()) {
                 loadingSpinner.dismiss();
                 String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
@@ -132,6 +144,110 @@ public class ExICS_Main extends Activity
             }
         }
     };
+
+    private ArrayList<ExICSMessage> messages = new ArrayList<ExICSMessage>();
+    private AlertDialog messageAlertDialog;
+    private BroadcastReceiver onNewMessageReceived = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "onNewMessageReceived");
+            String sender = intent.getStringExtra(ExICSProtocol.TAG_SENDER);
+            int room = intent.getIntExtra(ExICSProtocol.TAG_ROOM, -1);
+            Calendar timeReceived = (Calendar) intent.getSerializableExtra(ExICSProtocol.TAG_TIME);
+            String message = intent.getStringExtra(ExICSProtocol.TAG_MESSAGE);
+            ExICSMessage msgObject = new ExICSMessage(sender, room, timeReceived, message);
+            messages.add(msgObject);
+            if ((messageAlertDialog == null) || (messageAlertDialog != null && !(messageAlertDialog.isShowing()))) {
+                messageAlertDialog = createMessageAlert(msgObject);
+                messageAlertDialog.show();
+            }
+        }
+    };
+
+    private void removeExICSMessage(ExICSMessage msg) {
+        messages.remove(msg);
+    }
+
+    private AlertDialog createMessageAlert(final ExICSMessage message) {
+        AlertDialog.Builder messageAlertBuilder = new AlertDialog.Builder(this);
+        messageAlertBuilder.setTitle("Message Received");
+        View messageAlertView = getLayoutInflater().inflate(R.layout.message_alert_dialog, null, false);
+        TextView tvSender = (TextView) messageAlertView.findViewById(R.id.tvMessageAlertSender);
+        TextView tvRoom = (TextView) messageAlertView.findViewById(R.id.tvMessageAlertRoom);
+        TextView tvMessage = (TextView) messageAlertView.findViewById(R.id.tvMessageAlertMessage);
+        final TextView tvPreview = (TextView) messageAlertView.findViewById(R.id.tvMessageAlertPreview);
+        final Spinner spReplyMessage = (Spinner) messageAlertView.findViewById(R.id.spMessageAlertReply);
+        final EditText etCustomReply = (EditText) messageAlertView.findViewById(R.id.etMessageAlertCustomResponse);
+
+        final LinearLayout llPresetPreview = (LinearLayout) messageAlertView.findViewById(R.id.llMessageAlertMessagePreview);
+        final LinearLayout llCustomMessageBox = (LinearLayout) messageAlertView.findViewById(R.id.llMessageAlertCustomReply);
+
+        llCustomMessageBox.setVisibility(View.GONE);
+        llPresetPreview.setVisibility(View.VISIBLE);
+
+        tvSender.setText(message.getSender());
+        tvRoom.setText(String.valueOf(message.getRoom()));
+        tvMessage.setText(message.getMessage());
+
+        ArrayList<PresetMessage> presetResponses = new ExICSPresetMessages().getPresetResponses();
+        PresetMessage[] responses = new PresetMessage[presetResponses.size()];
+        responses = presetResponses.toArray(responses);
+        spReplyMessage.setAdapter(new PresetMessagesSpinnerAdapter(this, android.R.layout.simple_spinner_item, responses));
+        spReplyMessage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                PresetMessage selected = (PresetMessage) parent.getSelectedItem();
+
+                if (selected.getTitle().contentEquals("Custom")) {
+                    llCustomMessageBox.setVisibility(View.VISIBLE);
+                    llPresetPreview.setVisibility(View.GONE);
+                } else {
+                    llCustomMessageBox.setVisibility(View.GONE);
+                    llPresetPreview.setVisibility(View.VISIBLE);
+                    tvPreview.setText(selected.getMessage());
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                llCustomMessageBox.setVisibility(View.GONE);
+                llPresetPreview.setVisibility(View.VISIBLE);
+                tvPreview.setText("Please Select A Response Type Above");
+            }
+        });
+        messageAlertBuilder.setView(messageAlertView);
+        messageAlertBuilder.setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                removeExICSMessage(message);
+                if (messages.size() > 0) {
+                    messageAlertDialog = createMessageAlert(messages.get(0));
+                    messageAlertDialog.show();
+                }
+            }
+        });
+        messageAlertBuilder.setPositiveButton("Reply", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                PresetMessage selected = (PresetMessage) spReplyMessage.getSelectedItem();
+                String response;
+                if (selected.getTitle().contentEquals("Custom")) {
+                    response = etCustomReply.getText().toString();
+                } else {
+                    response = selected.getMessage();
+                }
+                wsCM.sendMessageToUser(message.getSender(), response);
+                removeExICSMessage(message);
+                if (messages.size() > 0) {
+                    messageAlertDialog = createMessageAlert(messages.get(0));
+                    messageAlertDialog.show();
+                }
+            }
+        });
+
+        return messageAlertBuilder.create();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -465,6 +581,7 @@ public class ExICS_Main extends Activity
         LocalBroadcastManager.getInstance(this).registerReceiver(onChatLogUpdated, new IntentFilter(BroadcastTags.TAG_LOG_UPDATED));
         LocalBroadcastManager.getInstance(this).registerReceiver(onFailure, new IntentFilter(BroadcastTags.TAG_FAILURE_OCCURRED));
         LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionClosed, new IntentFilter(BroadcastTags.TAG_CONNECTION_CLOSED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(onNewMessageReceived, new IntentFilter(BroadcastTags.TAG_MESSAGE_RECEIVED));
 
     }
 
@@ -474,6 +591,7 @@ public class ExICS_Main extends Activity
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onChatLogUpdated);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onFailure);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onConnectionClosed);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onNewMessageReceived);
     }
 
     private void quitToLogin() {
