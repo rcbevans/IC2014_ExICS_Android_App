@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.KeyguardManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -38,6 +40,7 @@ import rce10.ic.ac.uk.exics.Fragments.LogHistoryFragment;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
 import rce10.ic.ac.uk.exics.Fragments.RoomListFragment;
+import rce10.ic.ac.uk.exics.Fragments.SeatingPlanFragment;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
@@ -55,6 +58,7 @@ public class ExICS_Main extends Activity
 
     private static final String TAG_CHAT_FRAGMENT = "CHAT_FRAGMENT";
     private static final String TAG_ROOM_LIST_FRAGMENT = "ROOM_LIST_FRAGMENT";
+    private static final String TAG_SEATING_PLAN_FRAGMENT = "SEATING_PLAN_FRAGMENT";
 
     private static final String TAG = ExICS_Main.class.getName();
     private BroadcastReceiver onChatLogUpdated = new BroadcastReceiver() {
@@ -160,9 +164,11 @@ public class ExICS_Main extends Activity
             if ((messageAlertDialog == null) || (messageAlertDialog != null && !(messageAlertDialog.isShowing()))) {
                 messageAlertDialog = createMessageAlert(msgObject);
                 messageAlertDialog.show();
+                wakeDevice();
             }
         }
     };
+    private PowerManager.WakeLock fullWakeLock, partialWakeLock;
 
     private void removeExICSMessage(ExICSMessage msg) {
         messages.remove(msg);
@@ -216,6 +222,7 @@ public class ExICS_Main extends Activity
             }
         });
         messageAlertBuilder.setView(messageAlertView);
+        messageAlertBuilder.setCancelable(false);
         messageAlertBuilder.setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -237,11 +244,16 @@ public class ExICS_Main extends Activity
                 } else {
                     response = selected.getMessage();
                 }
-                wsCM.sendMessageToUser(message.getSender(), response);
-                removeExICSMessage(message);
-                if (messages.size() > 0) {
-                    messageAlertDialog = createMessageAlert(messages.get(0));
-                    messageAlertDialog.show();
+                if (response.length() > 0) {
+                    dialog.dismiss();
+                    wsCM.sendMessageToUser(message.getSender(), response);
+                    removeExICSMessage(message);
+                    if (messages.size() > 0) {
+                        messageAlertDialog = createMessageAlert(messages.get(0));
+                        messageAlertDialog.show();
+                    }
+                } else {
+                    Toast.makeText(ExICS_Main.this, "Please enter a valid message to be send", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -249,11 +261,19 @@ public class ExICS_Main extends Activity
         return messageAlertBuilder.create();
     }
 
+    protected void createWakeLocks() {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        fullWakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "Loneworker - FULL WAKE LOCK");
+        partialWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Loneworker - PARTIAL WAKE LOCK");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
         setContentView(R.layout.activity_ex_ics_main);
+
+        createWakeLocks();
 
         wsCM = wsCM.getInstance(ExICS_Main.this);
 
@@ -268,7 +288,6 @@ public class ExICS_Main extends Activity
         attachFragmentSwipeListeners();
 
         if (savedInstanceState != null) {
-            //TO_DO
             Boolean confirmQuitShowing = savedInstanceState.getBoolean(TAG_CONFIRM_QUIT_SHOWING, false);
 
             Boolean progressShowing = savedInstanceState.getBoolean(TAG_PROGRESS_SHOWING, false);
@@ -303,6 +322,14 @@ public class ExICS_Main extends Activity
     @Override
     protected void onResume() {
         Log.i(TAG, "onResume");
+
+        if (fullWakeLock != null && fullWakeLock.isHeld()) {
+            fullWakeLock.release();
+        }
+        if (partialWakeLock != null && partialWakeLock.isHeld()) {
+            partialWakeLock.release();
+        }
+
         SharedPreferences sp = getSharedPreferences(TAG_EXICS_MAIN_SHARED_PREFS, MODE_PRIVATE);
 
         Boolean progressShowing = sp.getBoolean(TAG_PROGRESS_SHOWING, false);
@@ -376,11 +403,20 @@ public class ExICS_Main extends Activity
                     .replace(R.id.flMainContent, RoomListFragment.newInstance(), TAG_ROOM_LIST_FRAGMENT)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
+        } else if (position == 1) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flMainContent, SeatingPlanFragment.newInstance(), TAG_SEATING_PLAN_FRAGMENT)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    .commit();
         } else {
             fragmentManager.beginTransaction()
                     .replace(R.id.flMainContent, PlaceholderFragment.newInstance(position + 1))
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
+        }
+
+        if (chatPaneShowing) {
+            hideChatLog();
         }
     }
 
@@ -613,6 +649,14 @@ public class ExICS_Main extends Activity
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    public void wakeDevice() {
+        fullWakeLock.acquire();
+
+        KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        keyguardLock.disableKeyguard();
     }
 
     @Override

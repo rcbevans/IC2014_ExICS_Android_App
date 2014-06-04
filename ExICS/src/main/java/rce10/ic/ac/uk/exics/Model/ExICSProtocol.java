@@ -35,4 +35,11 @@ abstract public class ExICSProtocol {
 
     public static final String TAG_NAME = "name";
     public static final String TAG_ROOM = "room";
+
+    public static final String TAG_SP_SEATING_PLANS = "SeatingPlans";
+    public static final String TAG_SP_ROOMS_S = "Room(s)";
+    public static final String TAG_SP_COURSE = "Course";
+    public static final String TAG_SP_CLASS = "Class";
+    public static final String TAG_SP_SEAT = "Seat";
+    public static final String TAG_SP_CID = "CID";
 }

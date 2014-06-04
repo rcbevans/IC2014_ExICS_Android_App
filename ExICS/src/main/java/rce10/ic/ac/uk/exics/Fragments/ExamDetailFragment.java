@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +33,7 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
     private static final int PAUSE_BUTTON = 1;
     private static final int RESUME_BUTTON = 2;
     private static final int STOP_BUTTON = 3;
+    private static final int XTIME_BUTTON = 4;
     private static final ExICSData exICSData = ExICSData.getInstance();
     private ExICS_Main_Fragment_Interface mCallbacks;
     private int roomNum;
@@ -106,7 +108,7 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
     }
 
     private View getActionButton(int type, View parentView) {
-        Log.i(TAG, "getActionButton " + type + " " + (int) (parentView.getHeight() * 7.0 / 10.0));
+        Log.i(TAG, "getActionButton");
         LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams((int) (parentView.getHeight() * 7.0 / 10.0), (int) (parentView.getHeight() * 7.0 / 10.0));
         View actionButton = getActivity().getLayoutInflater().inflate(R.layout.exam_detail_action_button_layout, null, false);
         actionButton.setLayoutParams(lparams);
@@ -129,6 +131,9 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                 icon.setImageDrawable(getResources().getDrawable(android.R.drawable.presence_offline));
                 text.setText("Stop Exam");
                 break;
+            case XTIME_BUTTON:
+                icon.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_lock_idle_alarm));
+                text.setText("Add Extra Time");
         }
 
         return actionButton;
@@ -249,6 +254,33 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                 });
                 actionButtionPanel.addView(pauseActionButton);
             }
+            final View xTimeActionButton = getActionButton(XTIME_BUTTON, actionButtionPanel);
+            xTimeActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder xTimeDialog = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                    xTimeDialog.setTitle("Add Extra Time");
+                    View xTimeView = getActivity().getLayoutInflater().inflate(R.layout.extra_time_dialog, null, false);
+                    final NumberPicker time = (NumberPicker) xTimeView.findViewById(R.id.npXTimeDialogTime);
+                    time.setMinValue(0);
+                    time.setMaxValue(1000);
+                    xTimeDialog.setView(xTimeView);
+                    xTimeDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    }).setPositiveButton("Add Time", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            int timeAdding = time.getValue();
+                            wsCM.addExtraTime(exam.getRoom(), exam.getExamSubModule(), timeAdding);
+                            dialog.dismiss();
+                        }
+                    }).setCancelable(true).create().show();
+                }
+            });
+            actionButtionPanel.addView(xTimeActionButton);
             View stopActionButton = getActionButton(STOP_BUTTON, actionButtionPanel);
             stopActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override

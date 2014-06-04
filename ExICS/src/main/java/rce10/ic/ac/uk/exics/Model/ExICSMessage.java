@@ -1,11 +1,12 @@
 package rce10.ic.ac.uk.exics.Model;
 
+import java.io.Serializable;
 import java.util.Calendar;
 
 /**
  * Created by Rich on 03/06/2014.
  */
-public class ExICSMessage {
+public class ExICSMessage implements Serializable {
     private String sender;
     private int room;
     private Calendar timeReceived;
@@ -50,5 +51,4 @@ public class ExICSMessage {
     public void setRoom(int room) {
         this.room = room;
     }
-
 }
