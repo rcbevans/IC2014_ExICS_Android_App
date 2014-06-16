@@ -19,10 +19,10 @@ import android.widget.Toast;
 
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
-import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.Exam;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
+import rce10.ic.ac.uk.exics.ViewModel.ExICSData;
 
 public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fragment_Interface {
 

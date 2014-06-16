@@ -44,7 +44,6 @@ import rce10.ic.ac.uk.exics.Fragments.SeatingPlanFragment;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
-import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.ExICSMessage;
 import rce10.ic.ac.uk.exics.Model.ExICSPresetMessages;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
@@ -52,6 +51,7 @@ import rce10.ic.ac.uk.exics.Model.PresetMessage;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.OnSwipeTouchListener;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
+import rce10.ic.ac.uk.exics.ViewModel.ExICSData;
 
 public class ExICS_Main extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, ExICS_Main_Fragment_Interface {

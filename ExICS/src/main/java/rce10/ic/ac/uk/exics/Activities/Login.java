@@ -30,10 +30,10 @@ import java.util.Set;
 
 import rce10.ic.ac.uk.exics.Adapters.RoomSelectSpinnerAdapter;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
-import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
 import rce10.ic.ac.uk.exics.R;
 import rce10.ic.ac.uk.exics.Utilities.wsCommunicationManager;
+import rce10.ic.ac.uk.exics.ViewModel.ExICSData;
 
 public class Login extends Activity {
 

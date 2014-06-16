@@ -1,4 +1,4 @@
-package rce10.ic.ac.uk.exics.Model;
+package rce10.ic.ac.uk.exics.ViewModel;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +7,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+
+import rce10.ic.ac.uk.exics.Model.BroadcastTags;
+import rce10.ic.ac.uk.exics.Model.Exam;
+import rce10.ic.ac.uk.exics.Model.User;
 
 /**
  * Created by Rich on 22/05/2014.

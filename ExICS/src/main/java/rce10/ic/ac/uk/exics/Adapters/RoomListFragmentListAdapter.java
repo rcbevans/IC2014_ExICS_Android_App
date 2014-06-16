@@ -7,8 +7,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.R;
+import rce10.ic.ac.uk.exics.ViewModel.ExICSData;
 
 /**
  * Created by Rich on 28/05/2014.

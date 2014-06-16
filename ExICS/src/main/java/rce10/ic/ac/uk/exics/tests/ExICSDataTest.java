@@ -5,10 +5,10 @@ import android.test.InstrumentationTestCase;
 import java.util.ArrayList;
 import java.util.Set;
 
-import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.Exam;
 import rce10.ic.ac.uk.exics.Model.PauseResumePair;
 import rce10.ic.ac.uk.exics.Model.User;
+import rce10.ic.ac.uk.exics.ViewModel.ExICSData;
 
 /**
  * Created by Rich on 22/05/2014.

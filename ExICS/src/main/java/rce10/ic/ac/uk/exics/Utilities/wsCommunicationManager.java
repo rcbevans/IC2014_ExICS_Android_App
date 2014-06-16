@@ -17,13 +17,13 @@ import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketHandler;
 import rce10.ic.ac.uk.exics.Model.BroadcastTags;
-import rce10.ic.ac.uk.exics.Model.ExICSData;
 import rce10.ic.ac.uk.exics.Model.ExICSException;
 import rce10.ic.ac.uk.exics.Model.ExICSMessageType;
 import rce10.ic.ac.uk.exics.Model.ExICSProtocol;
 import rce10.ic.ac.uk.exics.Model.Exam;
 import rce10.ic.ac.uk.exics.Model.PauseResumePair;
 import rce10.ic.ac.uk.exics.Model.User;
+import rce10.ic.ac.uk.exics.ViewModel.ExICSData;
 
 /**
  * Created by Rich on 21/05/2014.
