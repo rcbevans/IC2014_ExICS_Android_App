@@ -39,6 +39,7 @@ import java.util.Set;
 
 import rce10.ic.ac.uk.exics.Adapters.PresetMessagesSpinnerAdapter;
 import rce10.ic.ac.uk.exics.Adapters.RoomSelectSpinnerAdapter;
+import rce10.ic.ac.uk.exics.Fragments.InvigilationPlanFragment;
 import rce10.ic.ac.uk.exics.Fragments.LogHistoryFragment;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
@@ -62,6 +63,7 @@ public class ExICS_Main extends Activity
     private static final String TAG_CHAT_FRAGMENT = "CHAT_FRAGMENT";
     private static final String TAG_ROOM_LIST_FRAGMENT = "ROOM_LIST_FRAGMENT";
     private static final String TAG_SEATING_PLAN_FRAGMENT = "SEATING_PLAN_FRAGMENT";
+    private static final String TAG_INVIGILATION_PLAN_FRAGMENT = "INVIGILATION_PLAN_FRAGMENT";
 
     private static final String TAG = ExICS_Main.class.getName();
     private BroadcastReceiver onChatLogUpdated = new BroadcastReceiver() {
@@ -277,7 +279,6 @@ public class ExICS_Main extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "onCreate");
         setContentView(R.layout.activity_ex_ics_main);
 
         createWakeLocks();
@@ -285,6 +286,8 @@ public class ExICS_Main extends Activity
         wsCM = wsCM.getInstance(ExICS_Main.this);
 
         final SharedPreferences sp = getSharedPreferences(TAG_EXICS_MAIN_SHARED_PREFS, MODE_PRIVATE);
+
+        InvigilationPlanFragment.clearSavedPreferences(getApplicationContext());
 
         loadingSpinner = new ProgressDialog(ExICS_Main.this);
         loadingSpinner.setTitle("Connecting...");
@@ -426,6 +429,12 @@ public class ExICS_Main extends Activity
                     .replace(R.id.flMainContent, SeatingPlanFragment.newInstance(), TAG_SEATING_PLAN_FRAGMENT)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
+        } else if (position == 2) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flMainContent, InvigilationPlanFragment.newInstance(), TAG_INVIGILATION_PLAN_FRAGMENT)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    .commit();
+
         } else {
             fragmentManager.beginTransaction()
                     .replace(R.id.flMainContent, PlaceholderFragment.newInstance())
@@ -497,7 +506,6 @@ public class ExICS_Main extends Activity
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        Log.d(TAG, "oPOM");
         if (!mNavigationDrawerFragment.isDrawerOpen()) {
             int screenOrientation = getResources().getConfiguration().orientation;
             if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {

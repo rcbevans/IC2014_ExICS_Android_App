@@ -1,0 +1,104 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="@dimen/activity_horizontal_margin"
+    android:layout_marginLeft="@dimen/activity_vertical_margin"
+    android:layout_marginRight="@dimen/activity_vertical_margin"
+    android:layout_marginTop="@dimen/activity_horizontal_margin"
+    android:orientation="vertical"
+    tools:context=".Fragments.InvigilationPlanFragment">
+
+    <TextView
+        style="?android:attr/listSeparatorTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Invigilation Plan" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Before The Exam:" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/lighter_gray" />
+
+
+            <CheckBox
+                android:id="@+id/cbIPpaper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Check papers are on desk" />
+
+            <CheckBox
+                android:id="@+id/cbIPanswers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ensure answers aren't stapled to paper" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="During the Exam:" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/lighter_gray" />
+
+            <CheckBox
+                android:id="@+id/cbIPcheating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Make sure no-one cheats" />
+
+            <CheckBox
+                android:id="@+id/cbIPshuffle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Shuffle papers" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="After the Exam:" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/lighter_gray" />
+
+            <CheckBox
+                android:id="@+id/cbIPcollect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Collect Papers" />
+
+            <CheckBox
+                android:id="@+id/cbIPreport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Complete post-exam report" />
+
+            <CheckBox
+                android:id="@+id/cbIPcolleagues"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tell colleagues how amazing ExICS is" />
+
+
+        </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>
