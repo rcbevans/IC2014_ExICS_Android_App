@@ -18,8 +18,6 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
@@ -258,7 +256,25 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                 resumeActionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
+                        if (exam.getRoom() == roomNum) {
+                            wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
+                            timer.cancel();
+                        } else {
+                            AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                            confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                            confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            }).setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
+                                    timer.cancel();
+                                }
+                            }).create().show();
+                        }
                     }
                 });
                 actionButtionPanel.addView(resumeActionButton);
@@ -267,8 +283,25 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                 pauseActionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
-                        timer.cancel();
+                        if (exam.getRoom() == roomNum) {
+                            wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
+                            timer.cancel();
+                        } else {
+                            AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                            confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                            confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            }).setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
+                                    timer.cancel();
+                                }
+                            }).create().show();
+                        }
                     }
                 });
                 actionButtionPanel.addView(pauseActionButton);
@@ -281,8 +314,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                     xTimeDialog.setTitle("Add Extra Time");
                     View xTimeView = getActivity().getLayoutInflater().inflate(R.layout.extra_time_dialog, null, false);
                     final NumberPicker time = (NumberPicker) xTimeView.findViewById(R.id.npXTimeDialogTime);
-                    time.setMinValue(0);
-                    time.setMaxValue(1000);
+                    time.setMinValue(-120);
+                    time.setMaxValue(120);
                     xTimeDialog.setView(xTimeView);
                     xTimeDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
@@ -292,9 +325,32 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                     }).setPositiveButton("Add Time", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            int timeAdding = time.getValue();
-                            wsCM.addExtraTime(exam.getRoom(), exam.getExamSubModule(), timeAdding);
                             dialog.dismiss();
+                            if (exam.getRoom() == roomNum) {
+                                int timeAdding = time.getValue();
+                                if ((exam.getExtraTime() + timeAdding) >= 0)
+                                    wsCM.addExtraTime(exam.getRoom(), exam.getExamSubModule(), timeAdding);
+                                else
+                                    Toast.makeText(mCallbacks.getActivityContext(), "Unable to adjust extra time to less than 0!", Toast.LENGTH_LONG);
+                            } else {
+                                AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                                confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                                confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                }).setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        int timeAdding = time.getValue();
+                                        if ((exam.getExtraTime() + timeAdding) >= 0)
+                                            wsCM.addExtraTime(exam.getRoom(), exam.getExamSubModule(), timeAdding);
+                                        else
+                                            Toast.makeText(mCallbacks.getActivityContext(), "Unable to adjust extra time to less than 0!", Toast.LENGTH_LONG);
+                                    }
+                                }).create().show();
+                            }
                         }
                     }).setCancelable(true).create().show();
                 }
@@ -304,8 +360,25 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             stopActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (confirmStopExamDialog != null && !confirmStopExamDialog.isShowing())
-                        confirmStopExamDialog.show();
+                    if (exam.getRoom() == roomNum) {
+                        if (confirmStopExamDialog != null && !confirmStopExamDialog.isShowing())
+                            confirmStopExamDialog.show();
+                    } else {
+                        AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                        confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                        confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (confirmStopExamDialog != null && !confirmStopExamDialog.isShowing())
+                                    confirmStopExamDialog.show();
+                            }
+                        }).create().show();
+                    }
                 }
             });
             actionButtionPanel.addView(stopActionButton);
@@ -314,7 +387,23 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             startActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    wsCM.startExam(exam.getRoom(), exam.getExamSubModule());
+                    if (exam.getRoom() == roomNum) {
+                        wsCM.startExam(exam.getRoom(), exam.getExamSubModule());
+                    } else {
+                        AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                        confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                        confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                wsCM.startExam(exam.getRoom(), exam.getExamSubModule());
+                            }
+                        }).create().show();
+                    }
                 }
             });
             actionButtionPanel.addView(startActionButton);
@@ -349,7 +438,6 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
 
         @Override
         public void onTick(long millisUntilFinished) {
-            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
             if (millisUntilFinished < 900500 && millisUntilFinished >= 899500) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mCallbacks.getActivityContext());
                 builder.setCancelable(true).setTitle("Exam Nearly Over").setMessage("This exam will finish in 15 minutes!").setNeutralButton("Dismiss", new DialogInterface.OnClickListener() {
@@ -359,7 +447,6 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                     }
                 }).create().show();
             }
-            //3600000
             long hours = millisUntilFinished / 3600000;
             long mins = millisUntilFinished / 60000 % 60;
             long seconds = millisUntilFinished / 1000 % 60;
