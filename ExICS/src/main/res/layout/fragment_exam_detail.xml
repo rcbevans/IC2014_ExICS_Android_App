@@ -73,15 +73,32 @@
             android:background="@color/lighter_gray" />
 
 
-        <ImageView
-            android:id="@+id/ivExamDetailStatus"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:adjustViewBounds="true"
-            android:padding="@dimen/view_padding_default"
-            android:scaleType="centerInside"
-            android:src="@drawable/green_light" />
+            android:layout_weight="3.5"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivExamDetailStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:padding="@dimen/view_padding_default"
+                android:scaleType="centerInside"
+                android:src="@drawable/green_light" />
+
+            <TextView
+                android:id="@+id/tvCountDownTime"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:text="1:57:46" />
+
+        </LinearLayout>
+
 
     </LinearLayout>
 
@@ -137,7 +154,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="ScheduledStart" />
+                android:text="Scheduled Start" />
 
             <TextView
                 android:id="@+id/tvScheduledStartTime"

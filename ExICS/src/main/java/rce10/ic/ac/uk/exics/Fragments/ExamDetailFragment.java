@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,10 @@ import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Child_Fragment_Interface;
 import rce10.ic.ac.uk.exics.Interfaces.ExICS_Main_Fragment_Interface;
@@ -41,6 +46,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
     private wsCommunicationManager wsCM;
 
     private AlertDialog confirmStopExamDialog;
+
+    private countdownTimer timer = null;
 
     private Exam exam;
 
@@ -154,12 +161,15 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
+        timer.cancel();
     }
 
     public void setView(View view) {
         TextView examRoom = (TextView) view.findViewById(R.id.tvExamRoom);
         final TextView examCourseCode = (TextView) view.findViewById(R.id.tvExamCourseCode);
         TextView examTitle = (TextView) view.findViewById(R.id.tvExamDetailTitle);
+
+        TextView countdown = (TextView) view.findViewById(R.id.tvCountDownTime);
 
         ImageView examStatus = (ImageView) view.findViewById(R.id.ivExamDetailStatus);
 
@@ -196,7 +206,6 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                     } else {
                         obs.removeGlobalOnLayoutListener(this);
                     }
-
                     addActionButtons();
                 }
             });
@@ -220,12 +229,21 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             actualStartRow.setVisibility(View.VISIBLE);
 
             if (exam.isPaused()) {
+                countdown.setVisibility(View.GONE);
+                if (timer != null)
+                    timer.cancel();
                 examStatus.setImageDrawable(getResources().getDrawable(R.drawable.yellow_light));
             } else {
+                countdown.setVisibility(View.VISIBLE);
+                if (timer != null)
+                    timer.cancel();
+                timer = new countdownTimer(exam.getExpectedFinish().getTimeInMillis() - Calendar.getInstance().getTimeInMillis(), 1000, countdown);
+                timer.start();
                 examStatus.setImageDrawable(getResources().getDrawable(R.drawable.green_light));
             }
         } else {
             actualStartRow.setVisibility(View.GONE);
+            countdown.setVisibility(View.GONE);
 
             examStatus.setImageDrawable(getResources().getDrawable(R.drawable.red_light));
         }
@@ -250,6 +268,7 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                     @Override
                     public void onClick(View v) {
                         wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
+                        timer.cancel();
                     }
                 });
                 actionButtionPanel.addView(pauseActionButton);
@@ -311,6 +330,40 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
         } else {
             Toast.makeText(getActivity().getApplicationContext(), "This exam is no longer available!", Toast.LENGTH_SHORT).show();
             mCallbacks.fragmentViewUnavailable();
+        }
+    }
+
+    public class countdownTimer extends CountDownTimer {
+
+        private TextView display;
+
+        public countdownTimer(long millisInFuture, long countDownInterval, TextView display) {
+            super(millisInFuture, countDownInterval);
+            this.display = display;
+        }
+
+        @Override
+        public void onFinish() {
+            display.setText("done!");
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            if (millisUntilFinished < 900500 && millisUntilFinished >= 899500) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mCallbacks.getActivityContext());
+                builder.setCancelable(true).setTitle("Exam Nearly Over").setMessage("This exam will finish in 15 minutes!").setNeutralButton("Dismiss", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create().show();
+            }
+            //3600000
+            long hours = millisUntilFinished / 3600000;
+            long mins = millisUntilFinished / 60000 % 60;
+            long seconds = millisUntilFinished / 1000 % 60;
+            display.setText(String.format("%02d:%02d:%02d", hours, mins, seconds));
         }
     }
 }

@@ -281,6 +281,4 @@ public class ExICSData {
         }
         return numUsers;
     }
-
-    //User Methods
 }

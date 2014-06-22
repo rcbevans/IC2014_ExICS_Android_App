@@ -31,6 +31,7 @@ public class ExamListFragmentListAdapter extends ArrayAdapter<Exam> {
             convertView = context.getLayoutInflater().inflate(R.layout.exam_list_item_layout, parent, false);
         if (position < exams.length) {
             Exam rowExam = exams[position];
+            TextView examTitle = (TextView) convertView.findViewById(R.id.tvExamTitle);
             TextView examCode = (TextView) convertView.findViewById(R.id.tvExamCode);
 //            TextView numQns = (TextView) convertView.findViewById(R.id.tvNumQuestions);
             TextView startText = (TextView) convertView.findViewById(R.id.tvStartText);
@@ -39,6 +40,7 @@ public class ExamListFragmentListAdapter extends ArrayAdapter<Exam> {
             TextView schedFinishTime = (TextView) convertView.findViewById(R.id.tvScheduledEndTime);
             ImageView examStatus = (ImageView) convertView.findViewById(R.id.ivExamStatus);
 
+            examTitle.setText(rowExam.getTitle());
             examCode.setText(rowExam.getExamSubModule());
 //            numQns.setText(String.valueOf(rowExam.getNumQuestions()));
             examDuration.setText(String.valueOf(rowExam.getDuration()));

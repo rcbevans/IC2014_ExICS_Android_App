@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -34,8 +35,10 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Set;
 
 import rce10.ic.ac.uk.exics.Adapters.PresetMessagesSpinnerAdapter;
+import rce10.ic.ac.uk.exics.Adapters.RoomSelectSpinnerAdapter;
 import rce10.ic.ac.uk.exics.Fragments.LogHistoryFragment;
 import rce10.ic.ac.uk.exics.Fragments.NavigationDrawerFragment;
 import rce10.ic.ac.uk.exics.Fragments.PlaceholderFragment;
@@ -90,6 +93,8 @@ public class ExICS_Main extends Activity
     private Boolean holdWSOpen = false;
     private Boolean quitting = false;
     private Boolean chatPaneShowing = false;
+    private Dialog roomSelectDialog = null;
+    private int roomSelectSpinnerItem = 0;
     private ProgressDialog loadingSpinner = null;
     private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
         @Override
@@ -457,10 +462,66 @@ public class ExICS_Main extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.change_room) {
+            roomSelectDialog = createRoomSelectDialog();
+            roomSelectDialog.show();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private Dialog createRoomSelectDialog() {
+        final AlertDialog.Builder roomSelectBuilder = new AlertDialog.Builder(ExICS_Main.this);
+        roomSelectBuilder.setTitle("Room Select");
+        View roomSelectDialogView = getLayoutInflater().inflate(R.layout.room_select_dialog, null);
+        final Spinner roomList = (Spinner) roomSelectDialogView.findViewById(R.id.spRoomSpinner);
+        ArrayList<String> rooms = new ArrayList<String>();
+        Set<Integer> roomsWithExams = exicsData.getAllRooms();
+        for (int room : roomsWithExams) {
+            rooms.add(Integer.toString(room));
+        }
+        rooms.add("Delocalised");
+        String[] adapterData = new String[rooms.size()];
+        adapterData = rooms.toArray(adapterData);
+        RoomSelectSpinnerAdapter roomListAdapter = new RoomSelectSpinnerAdapter(ExICS_Main.this, android.R.layout.simple_spinner_dropdown_item, adapterData);
+        roomList.setAdapter(roomListAdapter);
+        roomList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                roomSelectSpinnerItem = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                roomSelectSpinnerItem = 0;
+            }
+        });
+        roomSelectBuilder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Spinner roomSelectSpinner = (Spinner) ((AlertDialog) dialog).findViewById(R.id.spRoomSpinner);
+                String room = (String) roomSelectSpinner.getSelectedItem();
+                if (room.contentEquals("Delocalised")) {
+                    wsCM.updateRoom(-3);
+                    exicsData.setRoom(-1);
+                } else {
+                    wsCM.updateRoom(Integer.parseInt(room));
+                    exicsData.setRoom(Integer.parseInt(room));
+                }
+            }
+        });
+        roomSelectBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        roomSelectBuilder.setView(roomSelectDialogView);
+        Dialog roomSelect = roomSelectBuilder.create();
+        roomSelect.setCanceledOnTouchOutside(false);
+        return roomSelect;
     }
 
     private void showChatLog() {
@@ -481,7 +542,6 @@ public class ExICS_Main extends Activity
                 .setListener(new Animator.AnimatorListener() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-
                     }
 
                     @Override
@@ -491,12 +551,10 @@ public class ExICS_Main extends Activity
 
                     @Override
                     public void onAnimationCancel(Animator animation) {
-
                     }
 
                     @Override
                     public void onAnimationRepeat(Animator animation) {
-
                     }
                 });
         chatPaneShowing = true;
@@ -520,7 +578,6 @@ public class ExICS_Main extends Activity
                 .setListener(new Animator.AnimatorListener() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-
                     }
 
                     @Override
@@ -530,12 +587,10 @@ public class ExICS_Main extends Activity
 
                     @Override
                     public void onAnimationCancel(Animator animation) {
-
                     }
 
                     @Override
                     public void onAnimationRepeat(Animator animation) {
-
                     }
                 });
         chatPaneShowing = false;

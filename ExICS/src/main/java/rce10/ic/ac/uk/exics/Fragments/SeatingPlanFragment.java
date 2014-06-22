@@ -82,6 +82,12 @@ public class SeatingPlanFragment extends Fragment implements ExICS_Main_Child_Fr
                              Bundle savedInstanceState) {
         View seatingPlanView = inflater.inflate(R.layout.fragment_seating_plan, container, false);
         setView(seatingPlanView);
+        Spinner roomSelectSpinner = (Spinner) seatingPlanView.findViewById(R.id.spSeatingPlanRoomSpinner);
+        for (int i = 0; i < roomSelectSpinner.getAdapter().getCount(); i++) {
+            if (((RoomSelectSpinnerAdapter) roomSelectSpinner.getAdapter()).getItem(i).contentEquals(String.valueOf(exICSData.getRoom()))) {
+                roomSelectSpinner.setSelection(i);
+            }
+        }
         return seatingPlanView;
     }
 

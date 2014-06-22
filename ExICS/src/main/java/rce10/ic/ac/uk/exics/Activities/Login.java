@@ -232,6 +232,13 @@ public class Login extends Activity {
         loadingSpinner = new ProgressDialog(Login.this);
         loadingSpinner.setTitle("Connecting...");
         loadingSpinner.setCanceledOnTouchOutside(false);
+        loadingSpinner.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                if (wsCM.isConnected())
+                    wsCM.disconnect();
+            }
+        });
 
         if (savedInstanceState != null) {
             Log.i(TAG, "Restoring State");

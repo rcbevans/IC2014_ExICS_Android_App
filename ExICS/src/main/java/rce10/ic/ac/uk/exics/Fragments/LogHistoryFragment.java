@@ -165,7 +165,7 @@ public class LogHistoryFragment extends Fragment implements ExICS_Main_Child_Fra
             }
         });
 
-        customBuilder.setTitle("Custom Message");
+        customBuilder.setTitle("Preset Message");
         customBuilder.setView(customDialogView);
         customBuilder.setCancelable(true).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
