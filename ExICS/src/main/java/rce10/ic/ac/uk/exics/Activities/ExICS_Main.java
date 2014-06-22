@@ -74,6 +74,8 @@ public class ExICS_Main extends Activity
             }
         }
     };
+    private static final int TAG_MENU_HIDE_LOG = 0;
+    private static final int TAG_MENU_SHOW_LOG = 1;
     private static final String TAG_EXICS_MAIN_SHARED_PREFS = "EXICS_MAIN_SHARED_PREFS";
     private static final String TAG_CONFIRM_QUIT_SHOWING = "CONFIRM_QUIT_SHOWING";
     private static final String TAG_PROGRESS_SHOWING = "PROGRESS_SHOWING";
@@ -361,13 +363,24 @@ public class ExICS_Main extends Activity
 
     @Override
     public void onBackPressed() {
-        Log.i(TAG, "onBackPressed() Backstack: " + getFragmentManager().getBackStackEntryCount());
         FragmentManager fm = getFragmentManager();
-        if (fm.getBackStackEntryCount() > 0 && !chatPaneShowing) {
-            fm.popBackStack();
+        int screenOrientation = getResources().getConfiguration().orientation;
+        if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (chatPaneShowing)
+                hideChatLog();
+            else if (fm.getBackStackEntryCount() > 0)
+                fm.popBackStack();
+            else {
+                if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
+                    confirmQuitDialog.show();
+            }
         } else {
-            if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
-                confirmQuitDialog.show();
+            if (fm.getBackStackEntryCount() > 0) {
+                fm.popBackStack();
+            } else {
+                if (confirmQuitDialog != null && !(confirmQuitDialog.isShowing()))
+                    confirmQuitDialog.show();
+            }
         }
     }
 
@@ -415,7 +428,7 @@ public class ExICS_Main extends Activity
                     .commit();
         } else {
             fragmentManager.beginTransaction()
-                    .replace(R.id.flMainContent, PlaceholderFragment.newInstance(position + 1))
+                    .replace(R.id.flMainContent, PlaceholderFragment.newInstance())
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
         }
@@ -423,17 +436,18 @@ public class ExICS_Main extends Activity
         if (chatPaneShowing) {
             hideChatLog();
         }
+        onSectionAttached(position);
     }
 
     public void onSectionAttached(int number) {
         switch (number) {
-            case 1:
+            case 0:
                 mTitle = "Overview";
                 break;
-            case 2:
-                mTitle = "SeatingPlan";
+            case 1:
+                mTitle = "Seating Plan";
                 break;
-            case 3:
+            case 2:
                 mTitle = "Invigilation Plan";
                 break;
             default:
@@ -462,12 +476,47 @@ public class ExICS_Main extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.change_room) {
-            roomSelectDialog = createRoomSelectDialog();
-            roomSelectDialog.show();
-            return true;
+        switch (id) {
+            case R.id.change_room:
+                roomSelectDialog = createRoomSelectDialog();
+                roomSelectDialog.show();
+                return true;
+            default:
+                break;
+        }
+        if (item.getTitle().toString().contentEquals("Hide ExICS Log")) {
+            if (chatPaneShowing)
+                hideChatLog();
+        } else if (item.getTitle().toString().contentEquals("Show ExICS Log")) {
+            if (!chatPaneShowing)
+                showChatLog();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "oPOM");
+        if (!mNavigationDrawerFragment.isDrawerOpen()) {
+            int screenOrientation = getResources().getConfiguration().orientation;
+            if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+                if (chatPaneShowing) {
+                    if (menu.findItem(TAG_MENU_SHOW_LOG) != null)
+                        menu.removeItem(TAG_MENU_SHOW_LOG);
+                    if (menu.findItem(TAG_MENU_HIDE_LOG) == null)
+                        menu.add(0, TAG_MENU_HIDE_LOG, 0, "Hide ExICS Log");
+                } else {
+                    if (menu.findItem(TAG_MENU_HIDE_LOG) != null)
+                        menu.removeItem(TAG_MENU_HIDE_LOG);
+                    if (menu.findItem(TAG_MENU_SHOW_LOG) == null)
+                        menu.add(0, TAG_MENU_SHOW_LOG, 0, "Show ExICS Log");
+                }
+            }
+            restoreActionBar();
+            return true;
+        }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private Dialog createRoomSelectDialog() {
@@ -628,7 +677,6 @@ public class ExICS_Main extends Activity
     private void attachFragmentSwipeListeners() {
         int screenOrientation = getResources().getConfiguration().orientation;
         if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
-            Log.i(TAG, "Attaching Fragment Swipe Listeners");
             FrameLayout mainContent = (FrameLayout) findViewById(R.id.flMainContent);
             mainContent.setOnTouchListener(new OnSwipeTouchListener(ExICS_Main.this) {
                 @Override

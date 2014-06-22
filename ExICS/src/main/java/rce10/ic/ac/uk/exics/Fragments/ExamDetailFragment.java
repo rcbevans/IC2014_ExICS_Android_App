@@ -159,7 +159,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
-        timer.cancel();
+        if (timer != null)
+            timer.cancel();
     }
 
     public void setView(View view) {
@@ -256,12 +257,13 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                 resumeActionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (exam.getRoom() == roomNum) {
+                        if (exam.getRoom() == exICSData.getRoom()) {
                             wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
-                            timer.cancel();
+                            if (timer != null)
+                                timer.cancel();
                         } else {
                             AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
-                            confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                            confirmationBuilder.setTitle("Are You Sure?").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
                             confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -271,7 +273,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
-                                    timer.cancel();
+                                    if (timer != null)
+                                        timer.cancel();
                                 }
                             }).create().show();
                         }
@@ -283,12 +286,13 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                 pauseActionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (exam.getRoom() == roomNum) {
+                        if (exam.getRoom() == exICSData.getRoom()) {
                             wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
-                            timer.cancel();
+                            if (timer != null)
+                                timer.cancel();
                         } else {
                             AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
-                            confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                            confirmationBuilder.setTitle("Are You Sure?").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
                             confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -298,7 +302,8 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     wsCM.pauseExam(exam.getRoom(), exam.getExamSubModule());
-                                    timer.cancel();
+                                    if (timer != null)
+                                        timer.cancel();
                                 }
                             }).create().show();
                         }
@@ -326,7 +331,7 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
-                            if (exam.getRoom() == roomNum) {
+                            if (exam.getRoom() == exICSData.getRoom()) {
                                 int timeAdding = time.getValue();
                                 if ((exam.getExtraTime() + timeAdding) >= 0)
                                     wsCM.addExtraTime(exam.getRoom(), exam.getExamSubModule(), timeAdding);
@@ -334,7 +339,7 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
                                     Toast.makeText(mCallbacks.getActivityContext(), "Unable to adjust extra time to less than 0!", Toast.LENGTH_LONG);
                             } else {
                                 AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
-                                confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                                confirmationBuilder.setTitle("Are You Sure?").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
                                 confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -360,12 +365,12 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             stopActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (exam.getRoom() == roomNum) {
+                    if (exam.getRoom() == exICSData.getRoom()) {
                         if (confirmStopExamDialog != null && !confirmStopExamDialog.isShowing())
                             confirmStopExamDialog.show();
                     } else {
                         AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
-                        confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                        confirmationBuilder.setTitle("Are You Sure?").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
                         confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -387,11 +392,11 @@ public class ExamDetailFragment extends Fragment implements ExICS_Main_Child_Fra
             startActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (exam.getRoom() == roomNum) {
+                    if (exam.getRoom() == exICSData.getRoom()) {
                         wsCM.startExam(exam.getRoom(), exam.getExamSubModule());
                     } else {
                         AlertDialog.Builder confirmationBuilder = new AlertDialog.Builder(mCallbacks.getActivityContext());
-                        confirmationBuilder.setTitle("Confirm").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
+                        confirmationBuilder.setTitle("Are You Sure?").setMessage("This exam is not taking place in the room you are set to invigilate, are you sure you want to do this?");
                         confirmationBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

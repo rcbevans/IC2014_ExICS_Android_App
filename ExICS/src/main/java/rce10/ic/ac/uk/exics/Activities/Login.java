@@ -73,7 +73,7 @@ public class Login extends Activity {
     private BroadcastReceiver onAuthSuccessful = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "Received Broadcast onAuthSuccessful");
+            Log.d(TAG, "Received Broadcast onAuthSuccessful");
             if (loadingSpinner != null && loadingSpinner.isShowing()) {
                 loadingSpinnerMessage = "Fetching System Data";
                 loadingSpinner.setMessage(loadingSpinnerMessage);
@@ -83,7 +83,7 @@ public class Login extends Activity {
     private BroadcastReceiver onFailure = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "Received Broadcast onReceive");
+            Log.d(TAG, "Received Broadcast onReceive");
             if (loadingSpinner != null && loadingSpinner.isShowing()) {
                 loadingSpinner.dismiss();
             }
@@ -97,7 +97,7 @@ public class Login extends Activity {
     private BroadcastReceiver onConnectionClosed = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "Received Broadcast onConnectionClosed");
+            Log.d(TAG, "Received Broadcast onConnectionClosed");
             if (loadingSpinner != null && loadingSpinner.isShowing()) {
                 loadingSpinner.dismiss();
                 String reason = intent.getStringExtra(ExICSProtocol.TAG_REASON);
@@ -114,7 +114,7 @@ public class Login extends Activity {
     private BroadcastReceiver onDataUpdated = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "Received Broadcast onDataUpdated");
+            Log.d(TAG, "Received Broadcast onDataUpdated");
 
             CheckBox rememberCredentials = (CheckBox) findViewById(R.id.cbLoginRememberCredentials);
             final SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
@@ -189,7 +189,6 @@ public class Login extends Activity {
                 roomSelect = roomSelectBuilder.create();
                 roomSelect.setCanceledOnTouchOutside(false);
                 roomSelect.show();
-                Log.i(TAG, "Room Select Showing onDataUpdated");
             }
         }
     };
@@ -197,10 +196,6 @@ public class Login extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Log.i(TAG, "onCreate()");
-
-        Log.i(TAG, "Saved instance state?" + (savedInstanceState != null));
 
         setContentView(R.layout.activity_login);
         wsCM = wsCommunicationManager.getInstance(this);
@@ -241,7 +236,6 @@ public class Login extends Activity {
         });
 
         if (savedInstanceState != null) {
-            Log.i(TAG, "Restoring State");
 
             String storedUsername = savedInstanceState.getString(TAG_ENTERED_USERNAME);
             String storedPassword = savedInstanceState.getString(TAG_ENTERED_PASSWORD);
@@ -322,7 +316,6 @@ public class Login extends Activity {
                 roomSelect = roomSelectBuilder.create();
                 roomSelect.setCanceledOnTouchOutside(false);
                 roomSelect.show();
-                Log.i(TAG, "Room Select Showing onCreate");
             }
 
             if (progressShowing && wsCM.isConnected()) {
@@ -335,7 +328,6 @@ public class Login extends Activity {
 
         } else {
             if (rememberCredentials) {
-                Log.i(TAG, "rememberCredentials()");
                 String storedUsername = sp.getString(TAG_USERNAME, "");
                 String storedPassword = sp.getString(TAG_PASSWORD, "");
                 usernameBox.setText(storedUsername);
@@ -399,8 +391,6 @@ public class Login extends Activity {
     protected void onResume() {
         super.onResume();
 
-        Log.i(TAG, "onResume()");
-
         final SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
 
         Boolean showPassword = sp.getBoolean(SHOW_PASSWORD_PREFERENCE, false);
@@ -419,7 +409,6 @@ public class Login extends Activity {
         CheckBox showPasswordCheckBox = (CheckBox) findViewById(R.id.cbLoginShowPassword);
 
         if (!enteredUsername.contentEquals("")) {
-            Log.i(TAG, "enteredUsername.contentEquals(\"\") " + enteredUsername);
 
             EditText usernameBox = (EditText) findViewById(R.id.etLoginUsername);
             usernameBox.setText(enteredUsername);
@@ -501,7 +490,6 @@ public class Login extends Activity {
             roomSelect = roomSelectBuilder.create();
             roomSelect.setCanceledOnTouchOutside(false);
             roomSelect.show();
-            Log.i(TAG, "Room Select Showing onResume");
         }
 
         if (progressShowing && wsCM.isConnected()) {
@@ -519,7 +507,6 @@ public class Login extends Activity {
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "onPause()");
 
         SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
         EditText passwordBox = (EditText) findViewById(R.id.etLoginPassword);
@@ -538,7 +525,6 @@ public class Login extends Activity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        Log.i(TAG, "onSaveInstanceState");
 
         EditText passwordBox = (EditText) findViewById(R.id.etLoginPassword);
         EditText usernameBox = (EditText) findViewById(R.id.etLoginUsername);
@@ -557,7 +543,6 @@ public class Login extends Activity {
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "onDestroy()");
 
         SharedPreferences sp = getSharedPreferences(LOGIN_PREFERENCES, MODE_PRIVATE);
         sp.edit().remove(TAG_ENTERED_USERNAME).remove(TAG_ENTERED_PASSWORD).remove(TAG_ABOUT_SHOWING).commit();

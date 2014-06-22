@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import rce10.ic.ac.uk.exics.Activities.ExICS_Main;
 import rce10.ic.ac.uk.exics.R;
 
 /**
@@ -16,7 +15,6 @@ import rce10.ic.ac.uk.exics.R;
 
 public class PlaceholderFragment extends Fragment {
 
-    private static final String ARG_SECTION_NUMBER = "section_number";
 
     public PlaceholderFragment() {
     }
@@ -25,10 +23,9 @@ public class PlaceholderFragment extends Fragment {
      * Returns a new instance of this fragment for the given section
      * number.
      */
-    public static PlaceholderFragment newInstance(int sectionNumber) {
+    public static PlaceholderFragment newInstance() {
         PlaceholderFragment fragment = new PlaceholderFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
         return fragment;
     }
@@ -43,7 +40,5 @@ public class PlaceholderFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ((ExICS_Main) activity).onSectionAttached(
-                getArguments().getInt(ARG_SECTION_NUMBER));
     }
 }
